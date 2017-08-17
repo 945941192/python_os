@@ -1,12 +1,4 @@
 #! /bin/bash
-##########################################################################
-# File Name: os_log.sh
-# Author: weizhanbiao
-# Mail: weizhanbiao.wc@alibaba-inc.com
-# Description: collect privte cloud os log for system
-#              faulty and kernel crash.
-# Created Time: 2017/8/11
-#########################################################################
 
 ############# Global Variable ############
 
