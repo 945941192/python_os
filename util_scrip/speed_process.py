@@ -5,16 +5,15 @@ import sys,time
 def decorator(num):
     def wrapp(fn):
         def test(*args, **kw):
-            fn()
-            sys.stdout.write(' ' * 10 + '\r')
-            sys.stdout.write(fn.__name__+"finished\n")
-            sys.stdout.flush()
+            data = fn()
             sys.stdout.write(' ' * 10 + '\r')
             sys.stdout.flush()
+            for i in data:
+                print i
             if num == 10:
-                sys.stdout.write(str((num/10)*100)+"%"+'#'*num+'\n')
-            else:
-                sys.stdout.write(str((num/10)*100)+"%"+'#'*num)
+                sys.stdout.write(str((num/10)*100)+'#'*num+'\n')
+            else:    
+                sys.stdout.write(str((num/10)*100)+"%"+'#'*num+'\r')
             sys.stdout.flush()
         return test
     return wrapp
@@ -23,15 +22,17 @@ def decorator(num):
 @decorator(1)
 def task1():
     time.sleep(3)
-
+    return ['a','b','c']
 
 @decorator(2)
 def task2():
     time.sleep(3)
+    return ['a','b','c']
 
 @decorator(10)
 def task10():
     time.sleep(3)
+    return ['a','b','c']
 
 
 task1()
