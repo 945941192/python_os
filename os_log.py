@@ -163,13 +163,15 @@ def get_top10_mem_process_info(path):
     #不加装饰器的原因
     subprocess.call('ps -e -wwo %s --sort rsz >> %s'%(custom_field,path),shell=True)
     top10_mem = subprocess.check_output("tail -10 %s | awk '{print $1}'"%path,shell=True)
-    get_top10_process_info(top10_mem,dir)
+    print "top10_mem--------------------------->",top10_mem
+    get_top10_process_info(top10_mem,dir,path)
 
 
-def get_top10_process_info(top10,log_dir):
+def get_top10_process_info(top10,log_dir,path):
+    print top10.split('\n')
     for pid in top10.split('\n')[:-1]:
         p_dir = "{}/{}".format(log_dir,pid)
-        files = subprocess.check_output('ls /proc/%s'%pid,shell=True).split('\n')[:-1]
+        files = subprocess.check_output('ls /proc/%s 2>>%s'%(pid,path),shell=True).split('\n')[:-1]
         dir_exis = subprocess.call('[ -d %s ]'%p_dir,shell=True)
         file_exclude = ['task','pagemap']
         if dir_exis == 0:
@@ -192,7 +194,7 @@ def get_top10_cpu_process_info(path):
     custom_field = 'pid,comm,psr,pmem,rsz,vsz,stime,user,stat,uid,args'
     subprocess.call('ps -e -wwo %s --sort pcpu >> %s'%(custom_field,path),shell=True)
     top10_cpu = subprocess.check_output("tail -10 %s | awk '{print $1}'"%path,shell=True)
-    get_top10_process_info(top10_cpu,dir)
+    get_top10_process_info(top10_cpu,dir,path)
 
 
 #########SystemInfoData functin end######
