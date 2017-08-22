@@ -6,14 +6,14 @@ def decorator(num):
     def wrapp(fn):
         def test(*args, **kw):
             data = fn()
-            sys.stdout.write(' ' * 10 + '\r')
+            sys.stdout.write(' ' * 100 + '\r')
             sys.stdout.flush()
             for i in data:
                 print i
             if num == 10:
-                sys.stdout.write(str((num/10)*100)+'#'*num+'\n')
+                sys.stdout.write(str((num/10)*100)+ '% : '+'#'*10*num+'\n')
             else:    
-                sys.stdout.write(str((num/10)*100)+"%"+'#'*num+'\r')
+                sys.stdout.write(str((num/10)*100)+"% : "+'#'*10*num+'\r')
             sys.stdout.flush()
         return test
     return wrapp
