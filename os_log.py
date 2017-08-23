@@ -375,14 +375,9 @@ if __name__ == "__main__":
         print "请输入正确命令行参数"
         usage()
 
-    import time
     prepare_to_run()
-    time.sleep(1)
     free_space_check(LOGDIR,5) 
-    time.sleep(1)
     show_system_info()
-    time.sleep(1)
     check_single_instance()
-    time.sleep(1)
     start_collection()
 

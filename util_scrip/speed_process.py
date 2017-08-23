@@ -24,11 +24,11 @@ def task1():
     time.sleep(3)
     return ['a','b','c']
 
-@decorator(2)
+#@decorator(2)
 def task2():
     time.sleep(3)
-    return ['a','b','c']
-
+    #return ['a','b','c']
+    print 'hello,world'
 @decorator(10)
 def task10():
     time.sleep(3)
