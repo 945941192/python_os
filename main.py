@@ -109,6 +109,13 @@ def show_system_info():
         out_data = subprocess.check_output(show_system_cmd[info],shell=True)
         print "%s %s"%(info,out_data)
 
+def check_single_instance():
+    lock_status = subprocess.call('[ -f %s ]'%LOCK_FILE,shell=True)
+    if lock_status == 0:
+        print '正在运行，请等待文件运行完毕再重试'
+        os._exit(0)
+
+
 
 ############################### End Logic function #################################
 
@@ -153,5 +160,8 @@ if __name__ == "__main__":
     prepare_to_run()
     check_free_space(LOGDIR,5)
     show_system_info()
-     
+    eck_single_instance() 
+    
+
+
 #################################### End Main #######################################
