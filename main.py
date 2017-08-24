@@ -160,7 +160,7 @@ if __name__ == "__main__":
     prepare_to_run()
     check_free_space(LOGDIR,5)
     show_system_info()
-    eck_single_instance() 
+    check_single_instance() 
     
 
 
