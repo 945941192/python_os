@@ -13,15 +13,18 @@ error()
 }
 
 query_services()
-{ 
+{
+#c file 
         host_or_ip_info=$1 
-        status1=$(grep $1 rtable.csv | wc -l) 
+        status1=$(grep -w $1 rtable.csv | wc -l) 
         [ ${status1} -eq 0 ] && error "No query to the host"
-        data1=$(grep $1 rtable.csv | awk -F ',' '{print $7}')
-        new_appgroup=$(grep $1 rtable.csv | awk -F ',' '{print $3}')
+        data1=$(grep -w $1 rtable.csv | awk -F ',' '{print $7}')
+        new_appgroup=$(grep -w $1 rtable.csv | awk -F ',' '{print $3}')
         printf  "host ${data1} new_appgroup ${new_appgroup}\n"
-        status2=$(grep $1 container_arrangement.csv | wc -l)
-        [ ${status2} -ne 0 ] && for info in $(grep $1 container_arrangement.csv)
+       
+#r file
+         status2=$(grep -w $1 container_arrangement.csv | wc -l)
+        [ ${status2} -ne 0 ] && for info in $(grep -w $1 container_arrangement.csv)
         do
             service_instance=$(echo ${info} | awk -F ',' '{print $1}')
             printf  "        |\n"

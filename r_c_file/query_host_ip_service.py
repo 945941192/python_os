@@ -33,7 +33,9 @@ def query_ip_hostname_service(in_info):
         for info in lines:
             if in_info in info.values():
                 docker_service_list.append(info)
-                print info
+                print "     |"
+                print "     |"
+                print "     ----docker_ip(%s) service_instance(%s)"%(info['ip'],info['service_instance'])
     print len(docker_service_list)
     
 
@@ -52,13 +54,11 @@ if __name__ == "__main__":
 
     try:
         opts,args = getopt.getopt(sys.argv[1:],"hq:")
-        print sys.argv,'------',opts
         for op,value in opts:
             if op == '-h':
                 usage()
             elif op == '-q':
                 in_info = value
-                print 'ip_info' ,in_info
         
         if len(opts) == 0:
             usage()
