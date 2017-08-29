@@ -1,6 +1,8 @@
 #! /bin/bash
 
 in_info=''
+r_file_path="rtable.csv"
+c_file_path="container_arrangement.csv"
 
 ##############  Function ########################
 
@@ -16,7 +18,7 @@ query_services()
 {
 #c file 
         host_or_ip_info=$1
-        data1=$(grep -w $1 rtable.csv)
+        data1=$(grep -w $1 ${r_file_path})
         #echo "$data1" 
         status1=$(echo ${data1} | wc -w) 
         echo "$status1"
@@ -26,7 +28,7 @@ query_services()
         printf  "host ${ip} new_appgroup ${new_appgroup}\n"
        
 #r file
-        data2=$(grep -w $1 container_arrangement.csv)
+        data2=$(grep -w $1 ${c_file_path})
         status2=$(echo ${data2} | wc -w)
         [ ${status2} -ne 0 ] && for info in ${data2}
         do
