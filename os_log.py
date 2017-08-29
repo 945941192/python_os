@@ -210,6 +210,24 @@ def get_bonding_info(path):
 
 
 ########NetworkInfoData function end#####
+
+def compress_log():
+
+    print "Start compressing log dir ..."
+    log_dir = "%s/%s"%(SLOGDIR,MYSELF)
+    os.chdir(SLOGDIR)
+    cmd_list = [
+                "rm -f %s.tar.gz"%(log_dir),
+                "tar -Pzcf %s.tar.gz %s"%(log_dir,MYSELF),
+                "md5sum %s.tar.gz > %s.tar.gz.md5sum"%(log_dir,MYSELF)
+               ]
+    list1 = map(lambda cmd : subprocess.call(cmd,shell=True),cmd_list)
+   # for cmd in cmd_list:
+    #    data = subprocess.call(cmd,shell=True)
+     #   print data,cmd
+
+
+
 def list_flags():
     for info_type in TypeDataList:
         for i in eval(info_type.split(':')[0]):
@@ -380,4 +398,5 @@ if __name__ == "__main__":
     show_system_info()
     check_single_instance()
     start_collection()
+    compress_log()
 
