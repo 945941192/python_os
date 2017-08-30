@@ -21,9 +21,10 @@ query_r_services()
         [ ${line_num_r} -eq 0 ] && printf "Not find data about $1 from ${r_file_path} \n" 
         [ ${line_num_r} -ne 0 ] && printf "Host computer query num \033[31m${line_num_r} \033[0m from ${r_file_path} \n"  && for info in ${data_r}
         do  
-            local host_name=$(echo ${info} | awk -F ',' '{print $6}')
-            local data_c=$(grep -w ${host_name} ${c_file_path})
-            output_host_info "${info}" "${data_c}"
+            #local host_name=$(echo ${info} | awk -F ',' '{print $6}')
+            #local data_c=$(grep -w ${host_name} ${c_file_path})
+            #output_host_info "${info}" "${data_c}"
+            output_host_info "${info}" 
         done
 }
 
