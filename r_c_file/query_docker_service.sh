@@ -1,10 +1,11 @@
 #! /bin/bash
 
 in_info=''
-Path=$(docker ps -a | grep tianmu | grep api | awk '{print $1}' | xargs docker inspect | grep -i source | grep "L1root/L1tools/main/config" | awk -F '"' '{print $4}')
-r_file_path="${Path}/rtable.csv"
-c_file_path="${Path}/container_arrangement.csv"
-
+#Path=$(docker ps -a | grep tianmu | grep api | awk '{print $1}' | xargs docker inspect | grep -i source | grep "L1root/L1tools/main/config" | awk -F '"' '{print $4}')
+#r_file_path="${Path}/rtable.csv"
+#c_file_path="${Path}/container_arrangement.csv"
+r_file_path="rtable.csv"
+c_file_path="container_arrangement.csv"
 
 
 ##############  Function ########################
@@ -26,7 +27,7 @@ query_r_services()
         do  
             local host_name=$(echo ${info} | awk -F ',' '{print $6}')
             local data_c=$(grep -w ${host_name} ${c_file_path})
-            output_host_info "${data_r}" "${data_c}"
+            output_host_info "${info}" "${data_c}"
         done
 }
 

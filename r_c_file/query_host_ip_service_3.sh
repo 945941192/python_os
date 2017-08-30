@@ -23,7 +23,7 @@ query_r_services()
         do  
             local host_name=$(echo ${info} | awk -F ',' '{print $6}')
             local data_c=$(grep -w ${host_name} ${c_file_path})
-            output_host_info "${data_r}" "${data_c}"
+            output_host_info "${info}" "${data_c}"
         done
 }
 
@@ -33,7 +33,7 @@ query_c_services()
     local line_num_c=$(grep $1 ${c_file_path} | wc -l)
     local hostname_array=()
     local n=0
-    [ ${line_num_c} -eq 0 ] && error  "Not find data about $1 from ${c_file_path}\n" 
+    [ ${line_num_c} -eq 0 ] && error  "Not find data about $1 from ${c_file_path}" 
     [ ${line_num_c} -ne 0 ] && printf "Docker info query num \033[31m${line_num_c} \033[0m from ${c_file_path}\n"  && for info in ${data_c}
     do
         local host_name=$(echo ${info} | awk -F ',' '{print $9}')
