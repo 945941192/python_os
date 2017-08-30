@@ -27,7 +27,7 @@ file_name = sys.argv[0]
 
 TypeDataList = [
 'SystemInfoData:system_info:Start collecting system information ...',
-#'NetworkInfoData:network_info:Start collecting network information ...',
+'NetworkInfoData:network_info:Start collecting network information ...',
 #'BMCInfoData:bmc_info:Start collecting bmc information ...',
 #'Dom0InfoData:dom0_info:Start collecting dom0 information ...',
 #'DiskInfoData:disk_info:Start collecting disk information ...',
@@ -75,21 +75,21 @@ SystemInfoData = [
 'top10_mem:get_top10_mem_process_info:path:top_mem_order:2:',
 'top10_cpu:get_top10_cpu_process_info:path:top_cpu_order:2:',
 ]
-#NetworkInfoData = [
-#'sarnet:sar -n DEV 1 5::sar_n_dev:',
-#'ss:ss -anpei::ss_anpei:',
-#'ipaddr:ip addr show::ip_addr_show:',
-#'iproute:ip route show::ip_route_show:',
-#'ifconfig:ifconfig::ifconfig:',
-#'ifconfig_all:ifconfig -a::ifconfig_a:',
-#'route_cache:route -Cn::route_Cn:',
-#'route:route -n::route_n:',
-#'netstat:netstat -anpo::netstat_anpo:',
-#'netstat_pro:netstat -s::netstat_s:',
-#'netstat_dev:netstat -i::netstat_i:',
+NetworkInfoData = [
+'sarnet:sar -n DEV 1 5::sar_n_dev:',
+'ss:ss -anpei::ss_anpei:',
+'ipaddr:ip addr show::ip_addr_show:',
+'iproute:ip route show::ip_route_show:',
+'ifconfig:ifconfig::ifconfig:',
+'ifconfig_all:ifconfig -a::ifconfig_a:',
+'route_cache:route -Cn::route_Cn:',
+'route:route -n::route_n:',
+'netstat:netstat -anpo::netstat_anpo:',
+'netstat_pro:netstat -s::netstat_s:',
+'netstat_dev:netstat -i::netstat_i:',
 #'bonding_info:get_bonding_info:path:bonding_info:',
 #'netcard_info:get_netcard_info:path:netcard_info:',
-#]
+]
 
 
 ############# decorator ####################

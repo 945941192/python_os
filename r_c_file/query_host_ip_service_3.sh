@@ -14,20 +14,49 @@ error()
     exit -1
 }
 
-query_services()
+query_r_services()
 {
-        local r_success=0
-        local c_success=0
-        local data_r=$(grep -w $1 ${r_file_path})
-        local data_c=$(grep -w $1 ${c_file_path})
-        local status_r=$(echo ${data_r} | wc -w) 
-        local status_c=$(echo ${data_c} | wc -w)
-        [ ${status_r} -ne 0 ] && r_success=1
-        [ ${status_c} -ne 0 ] && c_success=1
-        [ ${r_success} -ne 1 ] && [ ${c_success} -ne 1 ] && error "No query to the host"
-        [ ${r_success} -ne 1 ] && [ ${c_success} -eq 1 ] && data_r=$(grep -w $(grep -w $1 ${c_file_path} | head -1 | awk -F ',' '{print $9}') ${r_file_path})
-        output_host_info "${data_r}" "${data_c}"
+        local data_r=$(grep $1 ${r_file_path})
+        local line_num_r=$(grep $1 ${r_file_path} | wc -l)
+        [ ${line_num_r} -eq 0 ] && printf "Not find data about $1 from ${r_file_path} \n" 
+        [ ${line_num_r} -ne 0 ] && printf "Host computer query num \033[31m${line_num_r} \033[0m from ${r_file_path} \n"  && for info in ${data_r}
+        do  
+            local host_name=$(echo ${info} | awk -F ',' '{print $6}')
+            local data_c=$(grep -w ${host_name} ${c_file_path})
+            output_host_info "${data_r}" "${data_c}"
+        done
 }
+
+query_c_services()
+{
+    local data_c=$(grep $1 ${c_file_path})
+    local line_num_c=$(grep $1 ${c_file_path} | wc -l)
+    local hostname_array=()
+    local n=0
+    [ ${line_num_c} -eq 0 ] && error  "Not find data about $1 from ${c_file_path}\n" 
+    [ ${line_num_c} -ne 0 ] && printf "Docker info query num \033[31m${line_num_c} \033[0m from ${c_file_path}\n"  && for info in ${data_c}
+    do
+        local host_name=$(echo ${info} | awk -F ',' '{print $9}')
+        hostname_array[$n]=${host_name}
+        n=$(($n+1))
+    done
+    local hostname_array=($(awk -vRS=' ' '!a[$1]++' <<< ${hostname_array[@]}))
+
+    hostname_array_handle "${hostname_array[*]}"
+}
+
+hostname_array_handle()
+{
+    local hostname_array=$1
+    for hostname in ${hostname_array[*]}
+    do
+        local data_r=$(grep -w ${hostname} ${r_file_path})
+        local data_c_filter=$(grep ${in_info} ${c_file_path} | grep -w ${hostname})
+        output_host_info "${data_r}" "${data_c_filter}"
+    done
+
+}
+
 
 
 output_host_info()
@@ -39,14 +68,14 @@ output_host_info()
         local node=$(echo $1 | awk -F ',' '{print $4}')
         local OS=$(echo $1 | awk -F ',' '{print $8}')
         local new_appgroup=$(echo $1 | awk -F ',' '{print $3}')
-        printf  "hostnam(\E[1;31;33m${hostname}\E[0m) IP(\E[1;31;33m${ip}\E[0m) OS(${OS}) \n"
-        printf  "product(\E[1;31;33m${product}\E[0m) new_appgroup(\E[1;31;33m${new_appgrop}\E[0m) node(\E[1;31;33m${node}\E[0m) \n"
+        printf  "\E[1;31;33mHost computer:\E[0m  hostnam(\E[1;31;33m${hostname}\E[0m) IP(\E[1;31;33m${ip}\E[0m) OS(${OS}) \n"
+        printf  "                product(\E[1;31;33m${product}\E[0m) new_appgroup(\E[1;31;33m${new_appgroup}\E[0m) node(\E[1;31;33m${node}\E[0m) \n"
         for info in $2
         do
             local service_instance=$(echo ${info} | awk -F ',' '{print $1}')
             local docker_hostname=$(echo ${info} | awk -F ',' '{print $5}')
             local docker_ip=$(echo ${info} | awk -F ',' '{print $4}')
-            printf  "        ---Docker hostname(\E[1;31;32m${docker_hostname}\E[0m) IP(${docker_ip})  service(${service_instance})\n"
+            printf  "       ---\E[1;31;32mDocker\E[0m hostname(\E[1;31;32m${docker_hostname}\E[0m) IP(${docker_ip})  service(${service_instance})\n"
         done
 
 }
@@ -81,4 +110,5 @@ do
     esac
 done
 
-query_services "${in_info}"
+query_r_services "${in_info}"
+query_c_services "${in_info}"
