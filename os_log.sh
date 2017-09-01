@@ -1,4 +1,13 @@
 #!/bin/bash
+#########################################################################
+# File Name: os_log.sh
+# Author: PeiYuan
+# Mail: peiyuan.wc@alibaba-inc.com
+# Description: collect privte cloud os log for system
+#              faulty and kernel crash.
+# Created Time: Sun May 21 10:35:12 2017
+#########################################################################
+#set -o pipefail
 
 ############# Global Variable ############
 LOGDATE=$(date "+%Y-%m-%d-%H-%M-%S")
@@ -234,10 +243,35 @@ get_hpraid_log()
 {
     local log_temp=$1
     local cmd="/usr/sbin/hpacucli"
+    
+    [ -x "/usr/local/bin/hpacucli" ] && cmd="/usr/local/bin/hpacucli"
 
     mkdir -p $log_temp
     #$cmd version
     $cmd ctrl all show status > ${log_temp}/hpacucli_status.log 2>&1
+    $cmd ctrl all show config > ${log_temp}/hpacucli_config.log 2>&1
+    $cmd ctrl slot=0 pd all show status > ${log_temp}/hpacucli_pd_status.log 2>&1
+    $cmd ctrl slot=0 ld all show > ${log_temp}/hpacucli_ld_status.log 2>&1
+    local ld_nums=$(grep -c "logicaldrive" ${log_temp}/hpacucli_ld_status.log)
+    local index_ld=1
+    while [ $index_ld -le $ld_nums ]
+    do
+        $cmd ctrl slot=0 ld $index_ld show >> ${log_temp}/hpacucli_allld_status.log 2>&1
+        index_ld=$((index_ld+1))
+    done
+    local pd_id=$(grep "physicaldrive" ${log_temp}/hpacucli_pd_status.log|awk '{print $2}')
+    local pd_nums=$(grep -c "physicaldrive" ${log_temp}/hpacucli_pd_status.log)
+    local index_pd=1
+    while [ $index_pd -le $pd_nums ]
+    do
+        if [ $index_pd -eq $pd_nums ];then
+            pds=$(echo "${pd_id}"|sed -n "${index_pd}p")
+        else
+            pds=$(echo "${pd_id}\n"|sed -n "${index_pd}p")
+        fi
+        $cmd ctrl slot=0 pd $pds show >> ${log_temp}/hpacucli_allpd_status.log 2>&1
+        index_pd=$((index_pd+1))
+    done
 }
 get_megaraidscsi_log()
 {
@@ -272,6 +306,14 @@ get_mpt2sas_log()
 
     mkdir -p $log_temp
     $cmd LIST > ${log_temp}/sas2ircu_list.log 2>&1
+    local controller_nums=$(awk '$1~/^[0-9]/{print $0}' ${log_temp}/sas2ircu_list.log|wc -l)
+    local controller_id=0
+    while [ $controller_id -lt $controller_nums ]
+    do
+        $cmd $controller_id status >> ${log_temp}/sas2ircu_controllers_status.log 2>&1
+        $cmd $controller_id display >> ${log_temp}/sas2ircu_controllers_display.log 2>&1
+        controller_id=$((controller_id+1))
+    done
 }
 get_megaraidsas_log()
 {

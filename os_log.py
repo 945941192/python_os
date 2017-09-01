@@ -28,7 +28,7 @@ file_name = sys.argv[0]
 TypeDataList = [
 'SystemInfoData:system_info:Start collecting system information ...',
 'NetworkInfoData:network_info:Start collecting network information ...',
-#'BMCInfoData:bmc_info:Start collecting bmc information ...',
+'BMCInfoData:bmc_info:Start collecting bmc information ...',
 #'Dom0InfoData:dom0_info:Start collecting dom0 information ...',
 #'DiskInfoData:disk_info:Start collecting disk information ...',
 ]
@@ -89,6 +89,15 @@ NetworkInfoData = [
 'netstat_dev:netstat -i::netstat_i:',
 #'bonding_info:get_bonding_info:path:bonding_info:',
 #'netcard_info:get_netcard_info:path:netcard_info:',
+]
+
+BMCInfoData = [
+'ipmifru:ipmitool fru list::ipmitool_fru_list:2:',
+'ipmilan:ipmitool lan print 1::ipmitool_lan_print_1:2:',
+'ipmimc:ipmitool mc info::ipmitool_mc_info:2:',
+'ipmisensor:ipmitool sensor list::ipmitool_senso_list:2:',
+'ipmisdr:ipmitool sdr list::ipmitool_sdr_list:2:',
+'ipmisel:ipmitool sel elist::ipmitool_sel_elist:2:',
 ]
 
 
