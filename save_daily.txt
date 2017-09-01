@@ -1,0 +1,5 @@
+
+url about vim-learning web  http://blog.csdn.net/mergerly/article/details/51671890 
+github vim config  https://github.com/chxuan/vimplus   
+
+
