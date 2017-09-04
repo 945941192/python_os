@@ -1,13 +1,4 @@
 #!/bin/bash
-#########################################################################
-# File Name: os_log.sh
-# Author: PeiYuan
-# Mail: peiyuan.wc@alibaba-inc.com
-# Description: collect privte cloud os log for system
-#              faulty and kernel crash.
-# Created Time: Sun May 21 10:35:12 2017
-#########################################################################
-#set -o pipefail
 
 ############# Global Variable ############
 LOGDATE=$(date "+%Y-%m-%d-%H-%M-%S")
