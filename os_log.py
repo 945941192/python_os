@@ -70,7 +70,6 @@ SystemInfoData = [
 'pvs:pvs::pvs:2:',
 'journalctl:journalctl -xn:check:journalctl_xn:2:',
 'cp_system_files:copy_system_files:path:copy_system_files:2:',
-'cp_system_files:copy_system_files:path:copy_system_files:2:',
 'mpstat:mpstat -P ALL -I ALL::mpstat_A:2:',
 'top10_mem:get_top10_mem_process_info:path:top_mem_order:2:',
 'top10_cpu:get_top10_cpu_process_info:path:top_cpu_order:2:',
@@ -143,7 +142,18 @@ def progress_speed_decorator(num):
         return test
     return wrapp
 
+def shell_cmd_out_fn(cmd,out_file_path=''):
+    """                                                                                                                                                                            
+         if out_file_path not null 2>>out_file_path
+    """
+    cmd_status = subprocess.call('%s >>%s 2>&1'%(cmd,out_file_path),shell=True) if out_file_path else subprocess.call('%s >/dev/null 2>&1'%cmd,shell=True)
 
+    if cmd_status == 0:
+        out_data = subprocess.check_output('%s'%cmd,shell=True)
+    else:
+        data = subprocess.Popen('%s'%cmd,shell=True,stderr=subprocess.PIPE)
+        out_data = data.stderr.read()
+    return cmd_status,out_data
 
 
 ########### decorator end ##################
@@ -152,18 +162,19 @@ def progress_speed_decorator(num):
 #@func_output_redirection2
 def copy_system_files(path):
     file_dir = subprocess.check_output('dirname %s'%path,shell=True).strip()
-    system_files_list = ['/etc/kdump.conf','/boot/grub/','/etc/sysctl.conf','/var/log/kern','/etc/security/limits.conf','/var/log/secure','/var/log/secure-*','/var/log/messages','/var/log/messages-*',]
+    #system_files_list = ['/etc/kdump.conf','/boot/grub/','/etc/sysctl.conf','/var/log/kern','/etc/security/limits.conf','/var/log/secure','/var/log/secure-*','/var/log/messages','/var/log/messages-*',]
+    system_files_list = ['/var/log/kern','/var/log/messages']
     for system_file in system_files_list:
         copy_files(system_file,file_dir)
-
+    return success
 def copy_files(sys_file,file_dir,arg=''):
     if arg == 'ignore':
         res = subprocess.call('cp -r %s %s 2>/dev/null'%(sys_file,file_dir),shell=True)
     else:
 #        import pdb;pdb.set_trace()
         res = subprocess.Popen('cp -r %s %s'%(sys_file,file_dir),stderr=subprocess.PIPE,shell=True)
-        if res != '':
-            print res.stderr.read()
+        #if res != '':
+         #   print res.stderr.read()
 
 #@func_output_redirection2        
 def get_top10_mem_process_info(path):
@@ -172,15 +183,20 @@ def get_top10_mem_process_info(path):
     #不加装饰器的原因
     subprocess.call('ps -e -wwo %s --sort rsz >> %s'%(custom_field,path),shell=True)
     top10_mem = subprocess.check_output("tail -10 %s | awk '{print $1}'"%path,shell=True)
-    print "top10_mem--------------------------->",top10_mem
+    #print "top10_mem--------------------------->",top10_mem
     get_top10_process_info(top10_mem,dir,path)
-
+    return success
+    
 
 def get_top10_process_info(top10,log_dir,path):
-    print top10.split('\n')
+    #print top10.split('\n')
     for pid in top10.split('\n')[:-1]:
         p_dir = "{}/{}".format(log_dir,pid)
         files = subprocess.check_output('ls /proc/%s 2>>%s'%(pid,path),shell=True).split('\n')[:-1]
+        #res,data = shell_cmd_out_fn("ls /proc/%s"%pid,path)
+        #if res != 0:
+         #   continue
+        files = data.split('\n')[:-1]
         dir_exis = subprocess.call('[ -d %s ]'%p_dir,shell=True)
         file_exclude = ['task','pagemap']
         if dir_exis == 0:
@@ -204,7 +220,7 @@ def get_top10_cpu_process_info(path):
     subprocess.call('ps -e -wwo %s --sort pcpu >> %s'%(custom_field,path),shell=True)
     top10_cpu = subprocess.check_output("tail -10 %s | awk '{print $1}'"%path,shell=True)
     get_top10_process_info(top10_cpu,dir,path)
-
+    return success
 
 #########SystemInfoData functin end######
 
@@ -219,6 +235,16 @@ def get_bonding_info(path):
 
 
 ########NetworkInfoData function end#####
+
+def result(res):
+    if res == 0:
+        sys.stdout.write("\033[1;32;40m OK \033[0m\n")
+    elif res == 2:
+        sys.stdout.write("\033[1;33;40m WARNING \033[0m\n")
+    elif res == 3:
+        sys.stdout.write("\033[1;33;40m SKIP \033[0m\n")
+    else:
+        sys.stdout.write("\033[1;31;40m FAIL \033[0m\n")    
 
 def compress_log():
 
@@ -241,7 +267,6 @@ def list_flags():
     for info_type in TypeDataList:
         for i in eval(info_type.split(':')[0]):
             print i.split(':')[0]
-    print 'list_flages 函数执行'
 
 def collection_all():
     for info_type in TypeDataList:
@@ -249,17 +274,17 @@ def collection_all():
         dir_info = info_type.split(':')[1]
         output_info = info_type.split(':')[2]
         full_path = '{}/{}'.format(LOGDIR,dir_info)
-        print 'type_info--->%s'%type_info
-        print 'dir_info---->%s'%dir_info
-        print 'full_path--->%s'%full_path
+  #      print 'type_info--->%s'%type_info
+ #       print 'dir_info---->%s'%dir_info
+#        print 'full_path--->%s'%full_path
         collection_items(type_info,output_info,full_path)
             
-    print 'collection_all 函数执行结束'
-
 def collection_items(type_info,output_info,full_path):
-    print output_info
+    print " "
+    print "\033[1;32;40m %s \033[0m\n"%output_info
+    print " "
     mkdir_status = subprocess.call('mkdir -p %s'%full_path,shell=True)    
-    print '创建full_path---》%d'%mkdir_status
+    
     for info in eval(type_info):
         flag = info.split(':')[0]
         cmd = info.split(':')[1]
@@ -267,7 +292,6 @@ def collection_items(type_info,output_info,full_path):
         file_name = info.split(':')[3]
         default = info.split(':')[4]
         log_dir = "{}/{}".format(full_path,file_name)
-        #print flag,cmd,action,file_name,default,log_dir
         if target_cmd != '' and target_cmd == flag:
             cmd_log(cmd,log_dir,action)
             continue
@@ -279,22 +303,25 @@ def collection_items(type_info,output_info,full_path):
 
 
 def cmd_log(cmd,log_dir,action):
+    sys.stdout.write('%-85s'%cmd[:80])  
     cmd_exit_status = if_command_not_exit(cmd)
     if cmd_exit_status == fail:
-        print '命令或者函数不存在'
+       # print '命令或者函数不存在'
+       sys.stdout.write("\033[1;33;40m SKIP \033[0m\n")
+       pass
     elif cmd_exit_status == success:
-        sys.stdout.write('%-85s'%cmd[:80])
+    #    sys.stdout.write('%-85s'%cmd[:80])
         if action == 'path':
             #func_output_redirection(cmd,log_dir)                
-            eval(cmd)(log_dir)
+           res =  eval(cmd)(log_dir)
+           result(res)
         else:
             res = subprocess.call('eval %s >> %s 2>&1'%(cmd,log_dir),shell=True)
             if res == 0:
-                #print "%s-------->success"%cmd
-                sys.stdout.write("\033[1;32;42m OK \033[0m\n")
+                sys.stdout.write("\033[1;32;40m OK \033[0m\n")
             else:
-                #iprint "%s--------->fail"%cmd
-                sys.stdout.write("\033[1;31;41m FAIL \033[0m\n")
+                sys.stdout.write("\033[1;31;40m FAIL \033[0m\n")
+
 def if_command_not_exit(cmd):
     if if_command_exist(cmd) == success:
         return success
@@ -309,15 +336,15 @@ def if_command_exist(cmd):
         try:
            if isinstance(eval(cmd),FunctionType):
                 #eval(cmd).__call__()
-                print "Function %s 存在---------》%s"%(cmd,cmd)
+           #     print "Function %s 存在---------》%s"%(cmd,cmd)
                 return success
         except Exception as e:
-            print e
+            #print e
             return fail
  
 
 
-@progress_speed_decorator(7)
+#@progress_speed_decorator(7)
 def start_collection():
     if list_items == 1:
         list_flags()
@@ -325,7 +352,7 @@ def start_collection():
         collection_all()
 
 
-@progress_speed_decorator(4)
+#@progress_speed_decorator(4)
 def check_single_instance():
     lock_status = subprocess.call('[ -f %s ]'%LOCK_FILE,shell=True)
 #    print "LOCK_FILE %d"%lock_status
@@ -334,7 +361,7 @@ def check_single_instance():
         os._exit(0)
     
 
-@progress_speed_decorator(3)
+#@progress_speed_decorator(3)
 def show_system_info():
     print "System:       %s"%(subprocess.check_output('cat /etc/redhat-release',shell=True))
     print "Hostname:     %s"%(subprocess.check_output('hostname -f',shell=True))
@@ -342,17 +369,15 @@ def show_system_info():
     print "Arch:         %s"%(subprocess.check_output('uname -i',shell=True))
 
 
-@progress_speed_decorator(2)
+#@progress_speed_decorator(2)
 def free_space_check(LOGDIR,target):
     threshold = target*1024*1024
     current = int(subprocess.check_output("df -P $(dirname %s) | grep -v Filesystem | awk '{print $(NF-2)}'"%LOGDIR,shell=True).strip())
     if current < threshold:
         print '错误----》磁盘空间不够'
         os._exit(0)
-#    print "current---->%s"%current
 
-
-@progress_speed_decorator(1)
+#@progress_speed_decorator(1)
 def prepare_to_run():
     global LOCK_FILE
     global LOGDIR
@@ -360,10 +385,6 @@ def prepare_to_run():
     LOGDIR = "{}/{}".format(SLOGDIR,MYSELF)
     ret1 = subprocess.call("rm -rf %s"%LOGDIR,shell=True)
     ret2 = subprocess.call("mkdir -p %s"%LOGDIR,shell=True)
-    print ret1,'rm命令执行结果'
-    print LOCK_FILE
-    print '创建主目录------------>',LOGDIR
-    print 'prepare_to_run 函数运行结束'
 
 def usage():
     print "Usage:"
