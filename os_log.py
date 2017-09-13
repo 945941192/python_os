@@ -149,7 +149,7 @@ def progress_speed_decorator(num):
 ########### decorator end ##################
 
 #########SystemInfoData function#########
-@func_output_redirection2
+#@func_output_redirection2
 def copy_system_files(path):
     file_dir = subprocess.check_output('dirname %s'%path,shell=True).strip()
     system_files_list = ['/etc/kdump.conf','/boot/grub/','/etc/sysctl.conf','/var/log/kern','/etc/security/limits.conf','/var/log/secure','/var/log/secure-*','/var/log/messages','/var/log/messages-*',]
@@ -283,16 +283,18 @@ def cmd_log(cmd,log_dir,action):
     if cmd_exit_status == fail:
         print '命令或者函数不存在'
     elif cmd_exit_status == success:
+        sys.stdout.write('%-85s'%cmd[:80])
         if action == 'path':
             #func_output_redirection(cmd,log_dir)                
             eval(cmd)(log_dir)
         else:
             res = subprocess.call('eval %s >> %s 2>&1'%(cmd,log_dir),shell=True)
             if res == 0:
-                print "%s-------->success"%cmd
+                #print "%s-------->success"%cmd
+                sys.stdout.write("\033[1;32;42m OK \033[0m\n")
             else:
-                print "%s--------->fail"%cmd
-
+                #iprint "%s--------->fail"%cmd
+                sys.stdout.write("\033[1;31;41m FAIL \033[0m\n")
 def if_command_not_exit(cmd):
     if if_command_exist(cmd) == success:
         return success
