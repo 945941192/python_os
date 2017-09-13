@@ -192,11 +192,10 @@ def get_top10_process_info(top10,log_dir,path):
     #print top10.split('\n')
     for pid in top10.split('\n')[:-1]:
         p_dir = "{}/{}".format(log_dir,pid)
+        res = subprocess.call("ls /proc/%s 1>/dev/null 2>>%s"%(pid,path),shell=True)
+        if res != 0:
+			continue
         files = subprocess.check_output('ls /proc/%s 2>>%s'%(pid,path),shell=True).split('\n')[:-1]
-        #res,data = shell_cmd_out_fn("ls /proc/%s"%pid,path)
-        #if res != 0:
-         #   continue
-        files = data.split('\n')[:-1]
         dir_exis = subprocess.call('[ -d %s ]'%p_dir,shell=True)
         file_exclude = ['task','pagemap']
         if dir_exis == 0:
@@ -311,6 +310,7 @@ def cmd_log(cmd,log_dir,action):
        pass
     elif cmd_exit_status == success:
     #    sys.stdout.write('%-85s'%cmd[:80])
+        subprocess.call('echo Command:%s >> %s'%(cmd,log_dir),shell=True)
         if action == 'path':
             #func_output_redirection(cmd,log_dir)                
            res =  eval(cmd)(log_dir)
@@ -329,7 +329,7 @@ def if_command_not_exit(cmd):
         return fail
 
 def if_command_exist(cmd):
-    res = subprocess.call('command -v %s > /dev/null 2>&1'%cmd,shell=True)
+    res = subprocess.call('%s > /dev/null 2>&1'%cmd,shell=True)
     if res == 0:
         return success
     else:
