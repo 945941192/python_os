@@ -86,8 +86,8 @@ NetworkInfoData = [
 'netstat:netstat -anpo::netstat_anpo:',
 'netstat_pro:netstat -s::netstat_s:',
 'netstat_dev:netstat -i::netstat_i:',
-#'bonding_info:get_bonding_info:path:bonding_info:',
-#'netcard_info:get_netcard_info:path:netcard_info:',
+'bonding_info:get_bonding_info:path:bonding_info:',
+'netcard_info:get_netcard_info:path:netcard_info:',
 ]
 
 BMCInfoData = [
@@ -229,9 +229,27 @@ def get_top10_cpu_process_info(path):
 
 #########NetworkInfoData function#########
 def get_bonding_info(path):
-    print path,'*'*80
-    
+    status =  subprocess.call("ls /proc/net/bonding/ 1>/dev/null 2>>%s"%path,shell=True)
+    if status != 0:
+        return fail
+    bonds = subprocess.check_output("ls /proc/net/bonding/",shell=True).split('\n')[:-1]
+    for bond in bonds:
+        bond_path = path+"_"+bond
+        subprocess.call("cat /proc/net/bonding/%s >> %s"%(bond,bond_path),shell=True)
+    return sucess    
 
+def get_netcard_info(path):
+    log_temp = subprocess.check_output("dirname %s"%path,shell=True).strip()
+    nic_devices = subprocess.check_output("ls /sys/class/net",shell=True).split('\n')[:-1]
+    subprocess.call("echo 'nice_list='%s >> %s"%(' '.join(nic_devices),path),shell=True)
+    for device in nic_devices:
+        if device != 'lo' and os.path.isdir("/sys/class/net/%s"%device):
+            ndir = log_temp + '/' + device
+            #os.makedirs(ndir)
+            #os.system("/bin/cp -r /sys/calss/net/%s/* %s"%(device,ndir))
+            res = subprocess.call("mkdir -p %s"%ndir,shell=True)
+            subprocess.call("/bin/cp -r /sys/class/net/%s/* %s 2>>%s"%(device,ndir,path),shell=True)
+    return success
 
 ########NetworkInfoData function end#####
 
@@ -372,7 +390,7 @@ def show_system_info():
 #@progress_speed_decorator(2)
 def free_space_check(LOGDIR,target):
     threshold = target*1024*1024
-    current = int(subprocess.check_output("df -P $(dirname %s) | grep -v Filesystem | awk '{print $(NF-2)}'"%LOGDIR,shell=True).strip())
+    current = int(subprocess.check_output("df -P $(dirname %s) | egrep -v 'Used|Filesystem' | awk '{print $(NF-2)}'"%LOGDIR,shell=True).strip())
     if current < threshold:
         print '错误----》磁盘空间不够'
         os._exit(0)
