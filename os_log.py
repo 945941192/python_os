@@ -3,6 +3,7 @@ from __future__ import division
 import os
 import sys
 import getopt
+from signal import signal, SIGINT
 import subprocess
 from datetime import datetime
 from types import FunctionType
@@ -259,6 +260,17 @@ def get_netcard_info(path):
 def get_docker_info(path):
     return success
 ############################## End Dom0 function ###################
+ 
+
+
+
+def cleanup(a,b):
+	print "logdir=============",LOGDIR
+	print "LOGFILE=============",LOCK_FILE
+	subprocess.call("rm -f %s"%LOCK_FILE,shell=True)
+	subprocess.call("rm -rf %s"%LOGDIR,shell=True)
+	exit(2)	
+
 def result(res):
     if res == 0:
         sys.stdout.write("\033[1;32;40m OK \033[0m\n")
@@ -450,9 +462,10 @@ if __name__ == "__main__":
         usage()
 
     prepare_to_run()
+    signal(SIGINT, cleanup)
     free_space_check(LOGDIR,5) 
     show_system_info()
     check_single_instance()
     start_collection()
     compress_log()
-
+    cleanup()
