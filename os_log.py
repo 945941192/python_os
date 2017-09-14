@@ -29,7 +29,7 @@ TypeDataList = [
 'SystemInfoData:system_info:Start collecting system information ...',
 'NetworkInfoData:network_info:Start collecting network information ...',
 'BMCInfoData:bmc_info:Start collecting bmc information ...',
-#'Dom0InfoData:dom0_info:Start collecting dom0 information ...',
+'Dom0InfoData:dom0_info:Start collecting dom0 information ...',
 #'DiskInfoData:disk_info:Start collecting disk information ...',
 ]
 SystemInfoData = [
@@ -99,6 +99,9 @@ BMCInfoData = [
 'ipmisel:ipmitool sel elist::ipmitool_sel_elist:2:',
 ]
 
+Dom0InfoData = [
+'docker_info:get_docker_info:path:docker_info:2:check_dockers:'        
+]
 
 ############# decorator ####################
 def func_output_redirection(func_name,log_dir):
@@ -252,7 +255,10 @@ def get_netcard_info(path):
     return success
 
 ########NetworkInfoData function end#####
-
+############################# Dom0 function #######################
+def get_docker_info(path):
+    return success
+############################## End Dom0 function ###################
 def result(res):
     if res == 0:
         sys.stdout.write("\033[1;32;40m OK \033[0m\n")
