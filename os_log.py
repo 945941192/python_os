@@ -31,7 +31,7 @@ TypeDataList = [
 'NetworkInfoData:network_info:Start collecting network information ...',
 'BMCInfoData:bmc_info:Start collecting bmc information ...',
 'Dom0InfoData:dom0_info:Start collecting dom0 information ...',
-#'DiskInfoData:disk_info:Start collecting disk information ...',
+'DiskInfoData:disk_info:Start collecting disk information ...',
 ]
 SystemInfoData = [
 'history:cat $HOME/.bash_history::history:',
@@ -102,6 +102,14 @@ BMCInfoData = [
 
 Dom0InfoData = [
 'docker_info:get_docker_info:path:docker_info:2:check_dockers:'        
+]
+
+DiskInfoData = [
+'disks_io_detail:get_disks_io_detail:path:disks_io_detail:3::',
+'disk_info:get_disk_info:path:disk_info:2::',
+'raid_info:get_raid_log:path:raid_type:2:check_raid_card:',
+'check_syslog:/usr/alisys/dragoon/libexec/alimonitor/independent_domain_check_syslog:check:independent_domain_check_syslog:2:check_alimonitor_syslog:',
+'check_hardware:/usr/alisys/dragoon/libexec/alimonitor/independent_domain_check_hardware:check:independent_domain_check_hardware:2:check_alimonitor_hardward',
 ]
 
 ############# decorator ####################
@@ -399,10 +407,11 @@ def check_single_instance():
 
 #@progress_speed_decorator(3)
 def show_system_info():
-    print "System:       %s"%(subprocess.check_output('cat /etc/redhat-release',shell=True))
-    print "Hostname:     %s"%(subprocess.check_output('hostname -f',shell=True))
-    print "Kernel:       %s"%(subprocess.check_output('uname -r',shell=True))
-    print "Arch:         %s"%(subprocess.check_output('uname -i',shell=True))
+    print "\033[1;32;40m System Info........ \033[0m\n"   
+    print "System:       %s"%(subprocess.check_output('cat /etc/redhat-release',shell=True)).replace("\n","")
+    print "Hostname:     %s"%(subprocess.check_output('hostname -f',shell=True)).replace("\n","")
+    print "Kernel:       %s"%(subprocess.check_output('uname -r',shell=True)).replace("\n","")
+    print "Arch:         %s"%(subprocess.check_output('uname -i',shell=True)).replace("\n","")
 
 
 #@progress_speed_decorator(2)
@@ -468,4 +477,4 @@ if __name__ == "__main__":
     check_single_instance()
     start_collection()
     compress_log()
-    cleanup()
+    cleanup('a','b')
