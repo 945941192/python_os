@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>OS check report</title>
+	<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" >
+	<style> 
+		.black_overlay{ 
+			display: none; 
+			position: absolute; 
+			top: 0%; 
+			left: 0%; 
+			width: 100%; 
+			height: 100%; 
+			background-color: black; 
+			z-index:1001; 
+			-moz-opacity: 0.8; 
+			opacity:.80; 
+			filter: alpha(opacity=88); 
+		} 
+		.white_content { 
+			display: none; 
+			position: absolute; 
+			top: 25%; 
+			left: 25%; 
+			width: 55%; 
+			height: 55%; 
+			padding: 20px; 
+			border: 10px solid orange; 
+			background-color: white; 
+			z-index:1002; 
+			overflow: auto; 
+		} 
+	</style> 
+	 
+  </head>
+  <body>
+	<h1>你好，帅哥！</h1>
+
+	<div class="bs-example" data-example-id="bordered-table">
+	<table class="table table-bordered">
+	  <thead>
+		<tr>
+		  <th>index</th>
+		  <th>Collection cmd</th>
+		  <th>Check status</th>
+		  <th>Investigation reason</th>
+		  <th>Log detail</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+			<th scope="row">1</th>
+		  	<td>cat /root/.bash_history</td>
+		  	<td>warning</td>
+		  	<td>include rm or reboot.....</td>
+          	<td><button type="button" class="btn btn-success" onclick = "document.getElementById('light1').style.display='block';document.getElementById('fade1').style.display='block'">detail </button></td>
+            <div id="light1" class="white_content">
+            	<button type="button" class="btn btn-success"  onclick = "document.getElementById('light1').style.display='none';document.getElementById('fade1').style.display='none'">返回</button>
+            
+                <br>
+Command: cat /root/.bash_history<br>
+docker stop elated_minsky<br>
+docker logs elated_minsky<br>
+            </div> 
+            <div id="fade1" class="black_overlay"></div> 
+		</tr>
+		+ 
+	    <tr>
+         <th scope="row">1</th>
+         <td>cat $HOME/.bash_history</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light1').style.display='block';document.getElementById('fade1').style.display='block'">detail </button></td>
+         <div id="light1" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light1').style.display='none';document.getElementById('fade1').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade1" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">2</th>
+         <td>df -h</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light2').style.display='block';document.getElementById('fade2').style.display='block'">detail </button></td>
+         <div id="light2" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light2').style.display='none';document.getElementById('fade2').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade2" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">3</th>
+         <td>free -m</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light3').style.display='block';document.getElementById('fade3').style.display='block'">detail </button></td>
+         <div id="light3" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light3').style.display='none';document.getElementById('fade3').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade3" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">4</th>
+         <td>ps -Le -wwo 'pid,psr,pcpu,pmem,rsz,vsz,stime,user,stat,uid,wchan=WIDE-WCHAN-COLUMN,args' --sort rsz</td>
+         <td>total=0</td>
+         <td>total=0</td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light4').style.display='block';document.getElementById('fade4').style.display='block'">detail </button></td>
+         <div id="light4" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light4').style.display='none';document.getElementById('fade4').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade4" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">5</th>
+         <td>uptime</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light5').style.display='block';document.getElementById('fade5').style.display='block'">detail </button></td>
+         <div id="light5" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light5').style.display='none';document.getElementById('fade5').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade5" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">6</th>
+         <td>cat /proc/mounts</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light6').style.display='block';document.getElementById('fade6').style.display='block'">detail </button></td>
+         <div id="light6" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light6').style.display='none';document.getElementById('fade6').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade6" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">7</th>
+         <td>cat /etc/kdump.conf</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light7').style.display='block';document.getElementById('fade7').style.display='block'">detail </button></td>
+         <div id="light7" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light7').style.display='none';document.getElementById('fade7').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade7" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">8</th>
+         <td>cat /proc/cmdline</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light8').style.display='block';document.getElementById('fade8').style.display='block'">detail </button></td>
+         <div id="light8" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light8').style.display='none';document.getElementById('fade8').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade8" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">9</th>
+         <td>dmesg</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light9').style.display='block';document.getElementById('fade9').style.display='block'">detail </button></td>
+         <div id="light9" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light9').style.display='none';document.getElementById('fade9').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade9" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">10</th>
+         <td>iostat -xm 1 6</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light10').style.display='block';document.getElementById('fade10').style.display='block'">detail </button></td>
+         <div id="light10" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light10').style.display='none';document.getElementById('fade10').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade10" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">11</th>
+         <td>copy_system_files</td>
+         <td>grep: /var/log/crash_log.2017-09-19-17-18-31/system_info/kern: No such file or directory</td>
+         <td>grep: /var/log/crash_log.2017-09-19-17-18-31/system_info/kern: No such file or directory</td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light11').style.display='block';document.getElementById('fade11').style.display='block'">detail </button></td>
+         <div id="light11" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light11').style.display='none';document.getElementById('fade11').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade11" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">12</th>
+         <td>ifconfig</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light12').style.display='block';document.getElementById('fade12').style.display='block'">detail </button></td>
+         <div id="light12" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light12').style.display='none';document.getElementById('fade12').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade12" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">13</th>
+         <td>netstat -anpo</td>
+         <td>os_log.sh: line 95: check_tcp_status: command not found</td>
+         <td>os_log.sh: line 95: check_tcp_status: command not found</td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light13').style.display='block';document.getElementById('fade13').style.display='block'">detail </button></td>
+         <div id="light13" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light13').style.display='none';document.getElementById('fade13').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade13" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">14</th>
+         <td>netstat -i</td>
+         <td>os_log.sh: line 95: check_send_receive_err: command not found</td>
+         <td>os_log.sh: line 95: check_send_receive_err: command not found</td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light14').style.display='block';document.getElementById('fade14').style.display='block'">detail </button></td>
+         <div id="light14" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light14').style.display='none';document.getElementById('fade14').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade14" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">15</th>
+         <td>get_bonding_info</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light15').style.display='block';document.getElementById('fade15').style.display='block'">detail </button></td>
+         <div id="light15" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light15').style.display='none';document.getElementById('fade15').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade15" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">16</th>
+         <td>get_netcard_info</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light16').style.display='block';document.getElementById('fade16').style.display='block'">detail </button></td>
+         <div id="light16" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light16').style.display='none';document.getElementById('fade16').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade16" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">17</th>
+         <td>get_docker_info</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light17').style.display='block';document.getElementById('fade17').style.display='block'">detail </button></td>
+         <div id="light17" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light17').style.display='none';document.getElementById('fade17').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade17" class="black_overlay"></div> 
+     	</tr>+ 
+	    <tr>
+         <th scope="row">18</th>
+         <td>get_raid_log</td>
+         <td></td>
+         <td></td>
+         <td><button type="button" class="btn btn-success" onclick = "document.getElementById('light18').style.display='block';document.getElementById('fade18').style.display='block'">detail </button></td>
+         <div id="light18" class="white_content">
+             <button type="button" class="btn btn-success"  onclick = "document.getElementById('light18').style.display='none';document.getElementById('fade18').style.display='none'">返回</button>
+             <br>
+
+         </div> 
+         <div id="fade18" class="black_overlay"></div> 
+     	</tr>
+	  </tbody>
+	</table>
+	</div>
+  </body>
+</html>
+
