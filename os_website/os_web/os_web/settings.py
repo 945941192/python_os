@@ -56,7 +56,7 @@ ROOT_URLCONF = 'os_web.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,6 +71,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'os_web.wsgi.application'
 
+#static
+STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,'static')
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
