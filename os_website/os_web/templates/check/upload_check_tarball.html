@@ -13,8 +13,10 @@
 		<link rel="stylesheet" href="/static/css/page/typography.css" />
 		<link rel="stylesheet" href="/static/css/page/form.css" />
 		<link rel="stylesheet" href="/static/css/component.css" />
+        <link rel="stylesheet" href="/static/css/jquery.dataTables.min.css" />
 		<script src="/static/js/echarts.min.js"></script>
 		<script type="text/javascript" src="/static/js/jquery-2.1.0.js" ></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" ></script>  
 	</head>
 	<body>
 
@@ -87,24 +89,54 @@
 			
 		</div>
 
-			<div class="am-u-md-41">
-				<div id="main" style="width: 600px;height:400px;">
+			<div class="am-u-md-41" style="overflow:auto;">
                    
                                         
                 <form enctype="multipart/form-data" id="forms" action="{% url 'check:upload_check_tarball' %}" method="post">  
                     <br/>
                     <br/>
                     <br/>
-                    <input type="file"  id="Myfile" name="myfile" />  
+                    <input type="file"  id="Myfile" name="tarball" />  
                     <br/>  
                     <input class="btn btn-success" id="showLoadingDiv" onclick="submit" type="button" value="upload"/>  
-                </form>  
+                </form> 
 
-                </div>
+                    <br/>
+                    <br/>
+<table id="example" class="display" cellspacing="0" width="100%">
+                            <thead>                         
+                            <tr>                            
+                                <th>序号</th>                   
+                                <th>tarball</th>                
+                                <th>上传状态</th>               
+                                <th>check状态</th>              
+                                <th>check report 查看</th>      
+                                <th>check report 下载</th>      
+                                <th>时间</th>                   
+
+                                                                
+                            </tr>                           
+                            </thead>                                                                                                                                               
+                            <tbody>                         
+                            {%for info in tarball_set%}     
+                                <tr>                            
+                                    <td style="width:6%">1</td>     
+                                    <td style="width:10%">{{info.file_name}}</td>
+                                    <td style="width:12%">3</td>    
+                                    <td style="width:10%">4</td>    
+                                    <td style="width:10%">5</td>    
+                                    <td style="width:10%">5</td>    
+                                    <td style="width:10%">{{ info.upload_time|date:"Y-m-d H:i:s" }}</td> 
+                                </tr>                           
+                            {%endfor%}                      
+                            </tbody>                        
+                        </table>      
+
 			</div>
 
-			
-		</div>
+		
+
+
 
 
 		<script type="text/javascript">
@@ -125,10 +157,13 @@
                 });
                 
 
-            
-
-
         });
+
+$(document).ready(function() {
+    $('#example').DataTable( {
+    } );
+ 
+} );
 
 
     </script>
