@@ -39,7 +39,8 @@ def handle_upload_checktarball(request):
         tarball_obj.save()
 
         #return JsonResponse({'a':'b'})
-        return HttpResponseRedirect("/check/")
+       # return HttpResponseRedirect("/check/")
+        return HttpResponseRedirect(reverse("check:upload_check_tarball"))
 
 
 
