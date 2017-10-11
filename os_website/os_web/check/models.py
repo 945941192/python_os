@@ -4,7 +4,7 @@ from django.db import models
 # Create your models here.
 
 class UploadTarBallInfo(models.Model):
-    file_name = models.CharField(max_length=20,default='')
+    file_name = models.CharField(max_length=1000,default='')
     status = models.IntegerField(default=0)
     upload_time = models.DateTimeField(auto_now=True)
 
