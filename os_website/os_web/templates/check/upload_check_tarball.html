@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
 	<head>
@@ -103,30 +102,26 @@
 
                     <br/>
                     <br/>
-<table id="example" class="display" cellspacing="0" width="100%">
+                        <table id="example" class="display" cellspacing="0" width="100%">
                             <thead>                         
                             <tr>                            
-                                <th>序号</th>                   
-                                <th>tarball</th>                
-                                <th>上传状态</th>               
-                                <th>check状态</th>              
-                                <th>check report 查看</th>      
-                                <th>check report 下载</th>      
+                                <th> tarball info</th>                
+                                <th> up status</th>               
+                                <th> check status</th>              
+                                <th>report 查看</th>      
+                                <th>report 下载</th>      
                                 <th>时间</th>                   
-
-                                                                
                             </tr>                           
                             </thead>                                                                                                                                               
                             <tbody>                         
                             {%for info in tarball_set%}     
                                 <tr>                            
-                                    <td style="width:6%">1</td>     
-                                    <td style="width:10%">{{info.file_name}}</td>
-                                    <td style="width:12%">3</td>    
-                                    <td style="width:10%">4</td>    
-                                    <td style="width:10%">5</td>    
-                                    <td style="width:10%">5</td>    
-                                    <td style="width:10%">{{ info.upload_time|date:"Y-m-d H:i:s" }}</td> 
+                                    <td style="width:20%">{{info.file_name}}</td>
+                                    <td style="width:10%">{{info.up_status}}</td>    
+                                    <td style="width:10%">{{info.check_status}}</td>    
+                                    <td style="width:20%"><button class="btn btn-primary" type="button" onclick="show_check_report('{{info.file_name}}')">查看report</button></td>    
+                                    <td style="width:20%"><button class="btn btn-info" type="button" onclick="down_check_report('{{info.file_name}}')">下载check报告</button></td>    
+                                    <td style="width:20%">{{ info.upload_time|date:"Y-m-d H:i:s" }}</td> 
                                 </tr>                           
                             {%endfor%}                      
                             </tbody>                        
@@ -145,7 +140,6 @@
 
         $(document).ready(function() {
             $("#dataLoad").hide(); //页面加载完毕后即将DIV隐藏
-            // $("#showLoadingDiv").click(function(){$("#dataLoad").show();}); //为指定按钮添加数据加载动态显示：即将DIV显示出来
             $("#showLoadingDiv").click(function(){
                 if (!$("#Myfile").val()){
                     alert("请选择上传文件")
@@ -155,7 +149,10 @@
                 }
                     
                 });
-                
+
+
+
+
 
         });
 
@@ -165,6 +162,16 @@ $(document).ready(function() {
  
 } );
 
+
+        function show_check_report(file_name){ 
+            url = "{% url 'check:show_check_report' %}"+"?tarball="+file_name;
+            window.open(url);
+        };
+
+        function down_check_report(file_name){
+            url = "{% url 'check:down_check_report' %}"+"?tarball="+file_name
+            window.open(url) 
+        }
 
     </script>
 	
