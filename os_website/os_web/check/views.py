@@ -24,7 +24,7 @@ def handle_upload_checktarball(request):
     if request.method == "POST":
         tarball = request.FILES.get("tarball",None)
  #保存tarball到/var/os_tarball       
-        FilePath = "/var/os_tarball/"
+        FilePath = "/var/log/"
         path_status = os.path.exists(FilePath)
         if not path_status:
             os.makedirs(FilePath)
@@ -33,7 +33,7 @@ def handle_upload_checktarball(request):
             for c in tarball.chunks():
                 pic.write(c)
 ######check tar_ball
-        check_status = subprocess.call("sh /root/python_os/os/cld_check.sh %s"%full_path_tarball,shell=True) 
+        check_status = subprocess.call("sh /root/python_os/os/cld_check.sh -c -f  %s"%full_path_tarball,shell=True) 
 
 ######updown check report 
         tar_x_tarball = subprocess.call("cd %s && tar -zxf %s"%(FilePath,full_path_tarball),shell=True)
@@ -52,7 +52,7 @@ def handle_upload_checktarball(request):
 @csrf_exempt
 def handle_show_checkreport(request):
     tarball_name = request.GET.get("tarball")
-    FilePath = "/var/os_tarball/"
+    FilePath = "/var/log/"
     full_path_tarball = FilePath + tarball_name
     tar_x_tarball = subprocess.call("cd %s && tar -zxf %s"%(FilePath,full_path_tarball),shell=True)
     check_report_path = full_path_tarball.replace(".tar.gz","") + "/" + "check_report.html"
@@ -65,21 +65,18 @@ def handle_show_checkreport(request):
 @csrf_exempt
 def handle_down_check_report(request):
     tarball_name = request.GET.get("tarball")
-    FilePath = "/var/os_tarball/"
+    FilePath = "/var/log/"
     file_name = FilePath + tarball_name.replace(".tar.gz","") + "/" + "check_report.html"
-    def readFile(fn, buf_size=262144):#大文件下载，设定缓存大小  
+    def readFile(fn, buf_size=262144): 
         f = open(fn, "rb")  
-        while True:#循环读取  
+        while True: 
             c = f.read(buf_size)  
             if c:  
                 yield c  
             else:  
                 break  
         f.close() 
-    #设定文件头，这种设定可以让任意文件都能正确下载，而且已知文本文件不是本地打开   
     response = HttpResponse(readFile(file_name), content_type='application/octet-stream')
-    # 设定传输给客户端的文件名称   
     response['Content-Disposition'] = 'attachment;filename=%s' %(tarball_name + '_' + file_name.split("/")[-1]) 
-    #传输给客户端的文件大小  
     response['Content-Length'] = os.path.getsize(file_name)
     return response   
