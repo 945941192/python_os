@@ -1,5 +1,6 @@
 		
         {% extends 'base/base.html' %}
+        {% block title %}检测日志{% endblock %}
         {% block content %}
 
 			<div class="am-u-md-41" style="overflow:auto;">
@@ -73,17 +74,13 @@
                     
                 });
 
-
-
-
-
         });
 
-$(document).ready(function() {
-    $('#example').DataTable( {
-    } );
+        $(document).ready(function() {
+            $('#example').DataTable( {
+            });
  
-} );
+        });
 
 
         function show_check_report(file_name){ 

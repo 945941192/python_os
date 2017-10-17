@@ -1,5 +1,6 @@
 		
     {% extends 'base/base.html' %}
+        {% block title %}工具下载{% endblock %}
         {% block content %}
 
 			<div class="am-u-md-41" style="overflow:auto;">
@@ -91,7 +92,7 @@
 
 
 
-            {% block extrajs %}
+        {% block extrajs %}
 		<script type="text/javascript">
             $(document).ready(function() {
                 $('#example').DataTable( {
