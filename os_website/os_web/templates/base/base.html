@@ -1,0 +1,68 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>阿里云系统分析</title>
+        <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/static/css/amazeui.css" />
+		<link rel="stylesheet" href="/static/css/core.css" />
+		<link rel="stylesheet" href="/static/css/menu.css" />
+		<link rel="stylesheet" href="/static/css/index.css" />
+		<link rel="stylesheet" href="/static/css/admin.css" />
+		<link rel="stylesheet" href="/static/css/page/typography.css" />
+		<link rel="stylesheet" href="/static/css/page/form.css" />
+		<link rel="stylesheet" href="/static/css/component.css" />
+        <link rel="stylesheet" href="/static/css/jquery.dataTables.min.css" />
+        <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="/static/js/echarts.min.js"></script>
+		<script type="text/javascript" src="/static/js/jquery-2.1.0.js" ></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" ></script>  
+	</head>
+	<body>
+
+		<header class="am-topbar am-topbar-fixed-top">		
+			<div class="contain">
+				<ul class="am-nav am-navbar-nav am-navbar-left">
+
+					<li><h4 class="page-title">基本表格</h4></li>
+				</ul>
+				
+				<ul class="am-nav am-navbar-nav am-navbar-right">
+					<li class="inform"><i class="am-icon-bell-o" aria-hidden="true"></i></li>
+					<li class="hidden-xs am-hide-sm-only">
+                        <form role="search" class="app-search">
+                            <input type="text" placeholder="Search..." class="form-control">
+                            <a href=""><img src="/static/img/search.png"></a>
+                        </form>
+                    </li>
+				</ul>
+			</div>
+		</header>
+	
+		
+		
+		<div class="admin">
+	
+	        {% include 'base/sidebar.html' %}	
+		
+            {% block content %}{% endblock %}		
+
+		</div>
+
+        {% block extrajs %}{% endblock %}		
+
+	</body>
+	
+</html>
+
+
+
+
+
+
+
+
