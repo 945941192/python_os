@@ -7,10 +7,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 import os
 import subprocess
+import time
 
 from os_web.settings import PROJEKT_DIR,FilePath
 from check.models import UploadTarBallInfo,ScriptToolsInfo
 
+
+def pull_gitlab():
+    res = subprocess.call("cd %s && git pull origin wzb"%PROJEKT_DIR,shell=True)
 
 @csrf_exempt
 def handle_upload_checktarball(request):
@@ -27,6 +31,7 @@ def handle_upload_checktarball(request):
             for c in tarball.chunks():
                 pic.write(c)
 #check tar_ball
+        pull_gitlab()
         cld_check_script_path = subprocess.check_output("find %s -name cld_check.sh"%PROJEKT_DIR,shell=True).strip()
         check_status = subprocess.call("sh %s -c -f  %s"%(cld_check_script_path,full_path_tarball),shell=True) 
 #updown check report 
@@ -82,7 +87,9 @@ def handle_script_tools(request):
         mod = int(request.GET.get("mod",0))
         dele = int(request.GET.get("del",0))
         if down == 1:
+            pull_gitlab()
             file_name = subprocess.check_output("find %s -name %s"%(PROJEKT_DIR,tool_name),shell=True).strip()
+            gzexe_status = subprocess.call("gzexe %s"%file_name,shell=True)
             def readFile(fn,buf_size=262144):
                 f = open(fn,"rb")
                 while True:
@@ -93,8 +100,12 @@ def handle_script_tools(request):
                         break
                 f.close()
             response = HttpResponse(readFile(file_name),content_type="application/octet-stream")
-            response['Content-Disposition'] = 'attachment;filename=%s'%file_name
+            response['Content-Disposition'] = 'attachment;filename=%s'%tool_name
             response['Content-Length'] = os.path.getsize(file_name)
+            subprocess.call("cd %s"%(file_name.replace(tool_name,"")),shell=True)
+            subprocess.call("rm -f %s"%file_name,shell=True)
+            gzexe_file = file_name.replace(tool_name,"")+tool_name + "~"
+            subprocess.call("mv %s %s"%(gzexe_file,file_name),shell=True)
             return response
         elif save == 1:
             tool_obj = ScriptToolsInfo()
