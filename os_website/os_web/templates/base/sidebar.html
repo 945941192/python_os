@@ -6,7 +6,7 @@
                 <div class="am-offcanvas-bar admin-offcanvas-bar">
                     <div class="user-box am-hide-sm-only" style="padding-bottom: 1px;">
                         <div class="user-img" style="width:160px;height:100px">
-                            <img src="/static/img/alilog.png" alt="user-img" title="Mat Helme" class="img-thumbnail">
+                            <img src="/static/images/alilog.png" alt="user-img" title="alilog" class="img-thumbnail">
                                 <div class="user-status offline"><i class="am-icon-dot-circle-o" aria-hidden="true"></i></div>
                         </div>  
                         <h5><a href="#">阿里云</a> </h5>
@@ -26,7 +26,7 @@
                     </div>
                     
                         <ul class="am-list admin-sidebar-list">
-                            <li><a href="index.html"><span class="am-icon-home"></span> 首页</a></li>
+                            <li><a href="{% url 'index:index' %}"><span class="am-icon-home"></span> 首页</a></li>
                             <li class="admin-parent">
                             <a class="am-cf" data-am-collapse="{target: '#collapse-nav1'}"><span class="am-icon-table"></span> 系统分析 <span class="am-icon-angle-right am-fr am-margin-riht"></span></a> 
                                 <ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav1">

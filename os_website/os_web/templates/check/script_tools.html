@@ -3,7 +3,7 @@
         {% block title %}工具下载{% endblock %}
         {% block content %}
 
-			<div class="am-u-md-41" style="overflow:auto;">
+			<div class="am-u-md-41" id="contents" style="overflow:auto;">
 <br>
 <br>
 <br>
@@ -75,7 +75,7 @@
                                 {% for info in script_tools_set %}
                                 <tr>                            
                                     <td style="width:20%">{{ info.tool_name }}</td>
-                                    <td style="width:20%">{{ info.tool_instructions }}</td> 
+                                    <td style="width:40%">{{ info.tool_instructions }}</td> 
                                     <td style="width:20%"><button class="btn btn-info"  onclick="down_script_tool('{{ info.tool_name }}')">工具下载</button></td> 
                              <!--   <td style="width:20%"><button class="btn btn-info" type="button" onclick="delete_script_tool('{{ info.tool_name }}')">删除</button></td>  -->
                                     <td style="width:20%"><button class="btn btn-info" data-toggle="modal" data-target="#modal{{ info.id }}">编辑</button></td>
@@ -112,9 +112,13 @@
                                 {% endfor %}
                             </tbody>                        
                         </table>     
-
-
 			</div>
+
+            <div class="am-u-md-41" id="down_loading" style="text-align:center;margin-top: 211px;display:none"  align="center">
+                <img src="/static/images/boy_loading.gif"  style="text-align:center" alt="system_process-img" class="img-rounded"> 
+                <h3>   玩命下载中，请稍等。。。。。。</h3>
+            </div>
+
             {% endblock %}
 
 
@@ -126,14 +130,26 @@
 		<script type="text/javascript">
             $(document).ready(function() {
                 $('#example').DataTable( {
-                } );
+                });
  
-            } );
+            });
             
             function down_script_tool(tool_name){
                 var url = "{% url 'check:script_tools' %}"+"?tool_name="+tool_name+"&down=1"    
-                window.open(url) 
+                ///window.open(url) 
+               /// alert("正在下载")
+                ///$("#contents").hide()
+                ///$("#down_loading").show()
+                location.href = url;
+                
+                ///window.setTimeout("refreshPage()",3000); 
             }
+
+function refreshPage(){
+
+    
+                location.reload();
+}
 
             function save_tool_info(){
                 var tool_name = $("#tool_name").val()

@@ -14,7 +14,13 @@ from check.models import UploadTarBallInfo,ScriptToolsInfo
 
 
 def pull_gitlab():
-    res = subprocess.call("cd %s && git pull origin wzb"%PROJEKT_DIR,shell=True)
+    res = subprocess.call("cd %s && git pull origin master"%PROJEKT_DIR,shell=True)
+
+
+@csrf_exempt
+def handle_index(request):
+    return render(request,"index/index.html")
+
 
 @csrf_exempt
 def handle_upload_checktarball(request):

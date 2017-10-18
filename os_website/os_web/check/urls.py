@@ -5,6 +5,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    #首页
+    url(r'^info$', views.handle_index, name='index'),
     #上传tarball  展示 下载check report
     url(r'^$', views.handle_upload_checktarball, name='upload_check_tarball'),
     url(r'^show_check_report/$', views.handle_show_checkreport, name='show_check_report'),
