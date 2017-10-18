@@ -57,7 +57,7 @@ error()
 if_command_exist()
 {
     local cmd=$1
-    command -v $cmd > /dev/null 
+    command -v $cmd > /dev/null
     return $?
 }
 if_command_not_exist()
@@ -78,7 +78,7 @@ cmd_log()
 
     if_command_not_exist $cmd && result $skip && return
     [ "$action" = "path" ] && cmd="$cmd $log"
-    
+
     echo "Command: $cmd" >> $log
     eval $cmd >> $log 2>&1
     res=$?
@@ -122,7 +122,6 @@ check_single_instance()
         info ""
         error "Another $(basename $0) is running, please waiting it finish and then retry !"
     fi
-    touch "$LOCK_FILE"
     echo "$$" > "$LOCK_FILE"
 }
 check_root()
@@ -245,7 +244,7 @@ get_netcard_info()
 {
     local log_temp=$(dirname $1)
     local nic_devices=$(ls /sys/class/net/)
-    
+
     echo "nic_list="$nic_devices
     for device in ${nic_devices}
     do
@@ -327,7 +326,7 @@ get_hpraid_log()
 {
     local log_temp=$1
     local cmd="/usr/sbin/hpacucli"
-    
+
     [ -x "/usr/local/bin/hpacucli" ] && cmd="/usr/local/bin/hpacucli"
 
     mkdir -p $log_temp
@@ -379,7 +378,7 @@ get_aacraid_log()
     local log_temp=$1
     local cmd="/usr/local/sbin/arcconf"
     [ -a "/usr/StorMan/arcconf" ] && cmd="/usr/StorMan/arcconf"
-    
+
     mkdir -p $log_temp
     $cmd GETVERSION > ${log_temp}/arcconf_getversion.log 2>&1
 }
@@ -453,6 +452,8 @@ get_aliflash_info()
     local log_temp=$(dirname $1)
     local disks=$(cd /dev/ && ls df* | grep -v [1-9])
 
+    [ "$disks" = "" ] && return $skip
+
     echo "Aliflash: $disks"
     for disk in $disks
     do
@@ -483,7 +484,7 @@ get_disks_io_detail()
     local log_temp=$(dirname $1)
     local debugfs=$(cat /proc/mounts | grep -ic debugfs)
     local disks=$(cd /dev/ && ls sd*)
-    
+
     if_command_not_exist "blktrace" && install_rpm "blktrace"
     if_command_not_exist "blktrace" && info "Command blktrace install failed ..." && return
 
@@ -545,6 +546,8 @@ copy_files()
 {
     local src=$1
     local dst=$2
+
+    [ ! -e $src ] && return
     if [ "$3" = "ignore" ];then
         /bin/cp -r "$src" "$dst" 2>/dev/null
     else
@@ -562,7 +565,7 @@ get_top10_process_info()
         local dir="${log_dir}/$pid"
         local files=$(ls "/proc/${pid}")
         local exclude="task pagemap"
-        
+
         [ -d "$dir" ] && continue
         mkdir -p "$dir"
         pmap -x $pid > $dir/pmap_x 2>&1
@@ -584,7 +587,7 @@ get_top10_mem_process_info()
     ps -e -wwo 'pid,comm,psr,pmem,rsz,vsz,stime,user,stat,uid,args' --sort rsz
 
     local top10_mem=$(tail -10 $file | awk '{print $1}')
-    
+
     get_top10_process_info "$top10_mem" "$dir"
 }
 get_top10_cpu_process_info()
@@ -612,9 +615,12 @@ get_dns_info()
 copy_system_files()
 {
     local dir=$(dirname $1)
-    copy_files "/var/log/kern" "$dir/"
-    copy_files "/var/log/messages" "$dir/"
-    #copy_files "/var/log/sa/" "$dir"
+    local kern="/var/log/kern"
+    local messages="/var/log/messages"
+    copy_files "$kern" "$dir/"
+    copy_files "$messages" "$dir/"
+    [ -e $kern ] && echo "$kern" && tail -200 $kern
+    [ -e $messages ] && echo "$messages" && tail -200 $messages
     return $success
 }
 copy_other_files()
@@ -724,25 +730,21 @@ check_kdump_status()
 check_kdump_config()
 {
     local log_file=$1
-    local res=$fail
-    local key="Kdump config exist error"
+    local res=$success
+    local key="Kdump config err: "
     local device=$(df -lh /var | tail -1 | awk '{print $1}')
     local filesystem=$(mount|grep -w $device|awk '{print $(NF-1)}')
     local first_line="$device $filesystem"
     local second_line="path /var/crash"
-    local third_line_el5="core_collector makedumpfile -c --message-level 1 -d 1"
-    local third_line_el6_or_el7="core_collector makedumpfile -c --message-level 1 -d 31"
+    local third_line="core_collector makedumpfile -c --message-level 1 -d 31"
     local fourly_line="extra_modules mpt2sas mpt3sas megaraid_sas hpsa ahci"
     local five_line="default reboot"
-    third_line=$third_line_el6_or_el7
-    is_el5 && third_line=$third_line_el5
-    [[ $(awk 'NR==2 {print $1}' $log_file) == "$filesystem"  ]] && \
-    [[ $(awk 'NR==2 {print $2}' $log_file) == "$device"  ]] && \
-    [[ $(awk 'NR==3 {print}' $log_file) == "$second_line"  ]] && \
-    [[ $(awk 'NR==4 {print}' $log_file) == "$third_line"  ]] && \
-    [[ $(awk 'NR==5 {print}' $log_file) == "$fourly_line"  ]] && \
-    [[ $(awk 'NR==6 {print}' $log_file) == "$five_line"  ]] && \
-    key='' && res=$success
+    [[ $(awk 'NR==2 {print $1}' $log_file) != "$filesystem"  ]] && key+="$filesystem " && res=$fail
+    [[ $(awk 'NR==2 {print $2}' $log_file) != "$device"  ]] && key+="$device" && res=$fail
+    [[ $(awk 'NR==3 {print}' $log_file) != "$second_line"  ]] && key+="$second_line " && res=$fail
+    [[ $(awk 'NR==4 {print}' $log_file) != "$third_line"  ]] && key+="$third_line " && res=$fail
+    [[ $(awk 'NR==5 {print}' $log_file) != "$fourly_line"  ]] && key+="$fourly_line " && res=$fail
+    [[ $(awk 'NR==6 {print}' $log_file) != "$five_line"  ]] && key+="$five_line " && res=$fail
     show_result "$key" "$res"
     return $res
 }
@@ -780,8 +782,8 @@ check_io_utilize()
         for num in $devic_io_data; do total=$(awk 'BEGIN{print '${total}'+'${num}' }') ; done
         local devic_io_average_6=$(printf '%.0f' $(awk 'BEGIN{print '${total}'/6}'))
         [ $devic_io_average_6 -ge 80 ] && key="IO average util > 80 " && res=$warn
-        [ $devic_io_average_6 -ge 100 ] && key="IO average util > 100" && res=$fail && break  
-    done 
+        [ $devic_io_average_6 -ge 100 ] && key="IO average util > 100" && res=$fail && break
+    done
     [ $iowait_average_6 -ge 200  ] && key="IOwait average >200" && res=$fail
     show_result "$key" "$res"
     return $res
@@ -790,11 +792,10 @@ kernel_bug()
 {
     local confirm=$1
     local key=$2
-    local info="kernel bug: $key"
+    local info="Kernel bug: $key"
     #confirm 1 means we have confirmed it is a bug
     [ $confirm -ne 1 ] && echo -n "Suspect: "
     echo $info
-    echo "Please refer to http://os.alibaba-inc.com/down_list_view/"
 }
 kernel_bug_known()
 {
@@ -803,7 +804,6 @@ kernel_bug_known()
     local info="Known kernel bug: $key"
     [ $confirm -ne 1 ] && echo -n "Suspect: "
     echo $info
-    echo "Please refer to http://os.alibaba-inc.com/osbasebuginfo_list/" 
 }
 confirm_bug()
 {
@@ -830,7 +830,7 @@ kernel_error_message()
     local logfile=$1
     local res=$success
     local info_type="Kernel Bug Info Data"
-    local info_data=$(sed -n "/## $info_type ##/,/## End $info_type ##/"p $DATA_FILE | grep -v '#') 
+    local info_data=$(sed -n "/## $info_type ##/,/## End $info_type ##/"p $DATA_FILE | grep -v '#')
     while read line
     do
         local action_fun=$(echo $line | awk -F "@" '{print $1}')
@@ -982,7 +982,7 @@ check_dockers()
     local log_dir=$(dirname $log)
     local res=$success
     local key=""
-    local dockers=$(cat ${log} | awk  '{print $1}' | grep -iv "Command:" | grep -iv "CONTAINER") 
+    local dockers=$(cat ${log} | awk  '{print $1}' | grep -iv "Command:" | grep -iv "CONTAINER")
 
     check_docker_mem "$dockers" "$log_dir"
     [ $? -ne $success ] && res=$?
@@ -1019,13 +1019,14 @@ check_bonding()
         local bonding_dir="${log_dir}/${bond}"
         local bonding_log="$bonding_dir/cat_$bond"
         [ ! -e $bonding_log ] && continue
-        local SLAVE_flag=$(grep -c "MII Status" "$bonding_log")
-        local UP_flag=$(grep -v "Duplex" "$bonding_log" | grep -c "up")
-        local LACP_flag=$(grep -c "LACP" "$bonding_log")
-        [ $LACP_flag -ne 1 ] && key="$bond is not LACP protocal" && res=$fail
-        [ $SLAVE_flag -ne $UP_flag ] && key="$bond has slave nic down" && res=$fail
+        local slave_flag=$(grep -c "MII Status" "$bonding_log")
+        local up_flag=$(grep -v "Duplex" "$bonding_log" | grep -c "up")
+        local lacp_flag=$(grep -c "LACP" "$bonding_log")
+        local port_flag=$(grep "Number of ports" $bonding_log|awk '{print $4}')
+        [ $port_flag -ne 2 ] && show_result "Number of ports is $port_flag" $warn && res=$warn
+        [ $lacp_flag -ne 1 ] && show_result "$bond is not LACP protocal" $fail && res=$fail
+        [ $slave_flag -ne $up_flag ] && show_result "$bond has slave nic down" $fail && res=$fail
     done
-    show_result "$key" "$res"
     return $res
 }
 check_alimonitor_syslog()
@@ -1198,9 +1199,9 @@ check_tcp_status()
     local logfile=$1
     local res=$success
     local key=""
-    close_wait_count=$(sed -n '/Active Internet/,/Active UNIX/p' $logfile|grep -Ev "^udp|Internet|UNIX|Proto|raw"|awk '{print $6}'|grep -c "CLOSE_WAIT")
-    [ $close_wait_count -ge 100 ] && local key="more than $close_wait_count tcp connection in close_wait status" && res=$warn
-    [ $close_wait_count -ge 200 ] && local key="more than $close_wait_count tcp connection in close_wait status" && res=$fail
+    local close_wait_count=$(sed -n '/Active Internet/,/Active UNIX/p' $logfile|grep -Ev "^udp|Internet|UNIX|Proto|raw"|awk '{print $6}'|grep -c "CLOSE_WAIT")
+    [ $close_wait_count -ge 100 ] && local key="More than $close_wait_count tcp connection in close_wait status." && res=$warn
+    [ $close_wait_count -ge 200 ] && local key="More than $close_wait_count tcp connection in close_wait status." && res=$fail
     show_result "$key" "$res"
     return $res
 }
@@ -1211,7 +1212,7 @@ check_ipmi_sensor()
     local res=$success
     local key=""
     local sensor_status=$(grep -v "Command" $logfile|awk -F '|' '{print $4}'|grep -Evc "ok|0x0100|0x0000|0x8000|0x0080|0x0180|0x4080|0x0200|0x4000|na|nc|cr")
-    [ $sensor_status -gt 0 ] && local key="Sensor status is abnormal" && res=$warn
+    [ $sensor_status -gt 0 ] && local key="Sensor status is abnormal." && res=$warn
     show_result "$key" "$res"
     return $res
 }
@@ -1222,7 +1223,7 @@ check_ipmi_sdr()
     local res=$success
     local key=""
     local sdr_err=$(grep -v "Command" $logfile|awk -F '|' '{print $3}'| egrep -vc "ok|nc|cr")
-    [ $sdr_err -ne 0 ] && local key="Sdr status is abnormal" && res=$warn
+    [ $sdr_err -ne 0 ] && local key="Sdr status is abnormal." && res=$warn
     show_result "$key" "$res"
     return $res
 }
@@ -1235,7 +1236,7 @@ check_ntp()
     local ntpq_offset=$(grep "\*" $logfile|awk '{print $9}'|sed -r 's/-([0-9]+)/\1/g'|awk -F'.' '{print $1}')
     local key=""
     [ $ntpq_offset -ge 500 ] && key="offset is $ntpq_offset,big than 500!" && res=$warn
-    [[ "$ntp_master" =~ "127.127" ]] && key="sync to local clock" && res=$fail
+    [[ "$ntp_master" =~ "127.127" ]] && key="Ntp client sync to local clock." && res=$fail
     show_result "$key" "$res"
     return $res
 }
@@ -1247,7 +1248,7 @@ check_dns()
     local key=""
     local query_times=$(grep -c "@" $logfile)
     local query_noerror=$(grep "HEADER" $logfile|grep -c "NOERROR")
-    
+
     [ $query_noerror -lt $query_times ] && key="only have $query_noerror server response" && res=$warn
     [ $query_noerror -eq 0 ] && key="no server can response this query" && res=$fail
     show_result "$key" "$res"
@@ -1263,21 +1264,28 @@ summary_cpu_process()
     local ps_logfile="$LOGDIR/$logdir/$ps_log"
     local top_logfile="$LOGDIR/$logdir/$top_log"
     local d_logfile="$LOGDIR/summary_cpu_process_check"
+
+    touch $d_logfile
+    [ ! -e $ps_logfile ] || [ ! -e $top_logfile ] && return
     PID=$(awk '{print $1}' $ps_logfile|grep -Ev "PID|Command"|uniq -c|sort -rn|awk '{print $2}')
-    cat $top_logfile|head -6|tail -5 > $d_logfile
+    cat $top_logfile|head -6|tail -5 >> $d_logfile
     echo "" >> $d_logfile
-    printf "%-5s %-5s %-20s %-15s\n" PID COUNT WIDE-WCHAN-COLUMN COMMAND >> $d_logfile
+    printf "%-5s %-5s %-5s %-5s %-20s %-15s\n" PID COUNT %CPU %MEM WIDE-WCHAN-COLUMN COMMAND >> $d_logfile
     for pid in $PID
     do
-        local SPID=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{$2="";$3="";$4="";$5="";$6="";$7="";$8="";$9="";$10="";print}'|sort|uniq -c)
-        while read line
+        local WCHAN=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{print $11}'|sort|uniq)
+        local command=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{$1="";$2="";$3="";$4="";$5="";$6="";$7="";$8="";$9="";$10="";$11="";print}'|tail -1)
+        for wchan in $WCHAN
         do
-            local one=$(echo $line|awk '{print $2}')
-            local two=$(echo $line|awk '{print $1}')
-            local three=$(echo $line|awk '{print $3}')
-            local four=$(echo $line|awk '{$1="";$2="";$3="";print}')
-            printf "%-5s %-5s %-20s %-10s\n" "$one" "$two" "$three" "$four" >> $d_logfile
-        done <<< "$SPID"
+            local cpu_a=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $4}'|awk -F. 'BEGIN{sum=0}{sum+=$1}END{print sum}')
+            local cpu_b=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $4}'|awk -F. 'BEGIN{sum=0}{sum+=$2}END{print sum}')
+            local mem_a=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $5}'|awk -F. 'BEGIN{sum=0}{sum+=$1}END{print sum}')
+            local mem_b=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $5}'|awk -F. 'BEGIN{sum=0}{sum+=$2}END{print sum}')
+            local cpu_result="$cpu_a.$cpu_b"
+            local mem_result="$mem_a.$mem_b"
+            local wchan_count=$(grep -wE "^[ ]*$pid" $ps_logfile|grep -wc "$wchan")
+            printf "%-5s %-5s %-5s %-5s %-20s %-10s\n" "$pid" "$wchan_count" "$cpu_result" "$mem_result" "$wchan" "$command" >> $d_logfile
+        done
     done
 }
 check_rpmdb()
@@ -1290,6 +1298,72 @@ check_rpmdb()
     [ $result -ge 1 ] && key="rpm database verification failed" && res=$fail
     show_result "$key" "$res"
     return $res
+}
+generate_item_json_format()
+{
+    local check_log=$1
+    local check_fun=$2
+    local check_name=$3
+    local json_file=$4
+    local check_file="${check_log}_check"
+    local json_status=""
+
+    [ "$check_fun" = "" ] && return
+    [ ! -s $check_file ] || [ ! -e "$check_file" ] && return
+    [ -s $check_file ] && [ $(grep -Ec "WARNING|FAIL" $check_file) -eq 0 ] && return
+
+    local check_info=$(cat "$check_file")
+    local warn_status=$(tail -1 "$check_file"|grep -c 'WARNING')
+    local fail_status=$(tail -1 "$check_file"|grep -c 'FAIL')
+    [ $warn_status -eq 1 ] && json_status=1
+    [ $fail_status -eq 1 ] && json_status=2
+
+    echo " {" >> $json_file
+    echo "  \"status\": $json_status," >> $json_file
+    echo "  \"name\": \"$check_name\"," >> $json_file
+    echo "  \"info\": \"$check_info\"," >> $json_file
+    echo " }," >> $json_file
+}
+generate_item_json()
+{
+    local info_type="$1"
+    local full_path="$2"
+    local json_file="$3"
+    sed -n "/## $info_type ##/,/## End $info_type ##/"p $DATA_FILE | grep -v '#' | while read line
+    do
+        local flag=$(echo $line | awk -F: '{print $1}')
+        local action=$(echo $line | awk -F: '{print $3}')
+        local filename=$(echo $line | awk -F: '{print $4}')
+        local scope=$(echo $line | awk -F: '{print $5}')
+        local check_fun=$(echo $line | awk -F: '{print $6}')
+        local log="${full_path}/${filename}"
+
+        if [ "$target_cmd" != "" ];then
+            [ "$target_cmd" = "$flag" ] && generate_item_json_format "$log" "$check_fun" "$filename" "$json_file"
+            continue
+        fi
+        [ $target_scope -ge $scope ] && generate_item_json_format "$log" "$check_fun" "$filename" "$json_file"
+    done
+}
+generate_json_report()
+{
+    local type_pattern="Type Data"
+    local json_file="$LOGDIR/check.json"
+    sed -n "/## $type_pattern ##/,/## End $type_pattern ##/"p $DATA_FILE | grep -v '#' | while read typeline
+    do
+        local info_type=$(echo $typeline | awk -F: '{print $1}')
+        local info_dir=$(echo $typeline | awk -F: '{print $2}')
+        local default=$(echo $typeline | awk -F: '{print $3}')
+        local info_output=$(echo $typeline | awk -F: '{print $4}')
+        local full_path="${LOGDIR}/$info_dir"
+
+        [ "$target_type" != "" ] && [ "$target_type" != "$info_type" ] && continue
+        [ "$target_type" = "" ] && [ "$default" != "default" ] && continue
+        generate_item_json "$info_type" "$full_path" "$json_file"
+    done
+    sed -i '1i\[' $json_file
+    sed -i '$d' $json_file && echo " }" >> $json_file
+    echo "]" >> $json_file
 }
 list_flags()
 {
@@ -1330,7 +1404,7 @@ collection_items()
             [ "$target_cmd" = "$flag" ] && cmd_log "$cmd" "$log" "$action"
             continue
         fi
-        
+
         [ $target_scope -ge $scope ] && cmd_log "$cmd" "$log" "$action"
     done
 }
@@ -1345,7 +1419,7 @@ collection_all()
         local default=$(echo $typeline | awk -F: '{print $3}')
         local info_output=$(echo $typeline | awk -F: '{print $4}')
         local full_path="${LOGDIR}/$info_dir"
-        
+
         [ "$target_type" != "" ] && [ "$target_type" != "$info_type" ] && continue
         [ "$target_type" = "" ] && [ "$default" != "default" ] && continue
         collection_items "$info_type" "$info_output" "$full_path"
@@ -1372,7 +1446,7 @@ checking_items()
     local full_path="$3"
 
     info "Start checking $info_output"
-    
+
     sed -n "/## $info_type ##/,/## End $info_type ##/"p $DATA_FILE | grep -v '#' | while read line
     do
         local flag=$(echo $line | awk -F: '{print $1}')
@@ -1403,14 +1477,18 @@ summary_process_html()
 
     local PID=$(echo "$summary_process_field_info" | awk '{print $1}')
     local COUNT=$(echo "$summary_process_field_info" | awk '{print $2}')
-    local WIDE_WCHAN_COLLUMN=$(echo "$summary_process_field_info" | awk '{print $3}')
-    local COMMAND=$(echo "$summary_process_field_info" | awk '{print $4}')
-    local summary_process_field_html="       
+    local CPU=$(echo "$summary_process_field_info" | awk '{print $3}')
+    local MEM=$(echo "$summary_process_field_info" | awk '{print $4}')
+    local WIDE_WCHAN_COLLUMN=$(echo "$summary_process_field_info" | awk '{print $5}')
+    local COMMAND=$(echo "$summary_process_field_info" | awk '{print $6}')
+    local summary_process_field_html="
          <table class=\"table table-bordered\" style=\"word-break:break-all; word-wrap:break-all;\">
             <thead>
                 <tr class=\"tr_top\" height=\"30px\">
                   <th width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${PID}</th>
                   <th class=\"as\" id=\"th1\" onclick=\"ProcessCountSort(this)\" width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${COUNT}<div>(点击可排序)</div></th>
+                  <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${CPU}</th>
+                  <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${MEM}</th>
                   <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${WIDE_WCHAN_COLLUMN}</th>
                   <th width=\"65%\" style=\"text-align: center;vertical-align: middle;\">${COMMAND}</th>
                 </tr>
@@ -1420,14 +1498,18 @@ summary_process_html()
     do
         local pid=$(echo "$process_line" | awk '{print $1}')
         local num=$(echo "$process_line" | awk '{print $2}')
-        local wide_wchan_column=$(echo "$process_line" | awk '{print $3}')
-        local commands=$(echo "$process_line" | awk '{data="";for(i=4;i<=NF;i++){data=data""$i} print data}')
+        local cpu=$(echo "$process_line" | awk '{print $3}')
+        local mem=$(echo "$process_line" | awk '{print $4}')
+        local wide_wchan_column=$(echo "$process_line" | awk '{print $5}')
+        local commands=$(echo "$process_line" | awk '{data="";for(i=6;i<=NF;i++){data=data""$i} print data}')
         local summary_process_line_html+="
                 <tr class=\"text-center\" height=\"25px\">
                     <td name="td0" height=\"25px\">${pid}</td>
                     <td name="td1" height=\"25px\">${num}</td>
-                    <td name="td2" height=\"25px\">${wide_wchan_column}</td>
-                    <td name="td3" height=\"25px\">${commands}</td>
+                    <td name="td2" height=\"25px\">${cpu}</td>
+                    <td name="td3" height=\"25px\">${mem}</td>
+                    <td name="td4" height=\"25px\">${wide_wchan_column}</td>
+                    <td name="td5" height=\"25px\">${commands}</td>
                 </tr>"
     done <<< "${summary_process_line_info}"
     local summary_process_line_html_end="
@@ -1444,8 +1526,8 @@ html_body()
     local check_result_reson=$3
     local collect_log_data=$4
     local n=$5
-    local html_body=" 
-            <tr class=\"text-center\">            
+    local html_content="
+            <tr class=\"text-center\">
                 <td></td>
                 <td>${flag}</td>
                 ${check_status}
@@ -1477,7 +1559,7 @@ html_body()
                 </div>
                 </div>
             </tr>"
-    echo "$html_body"
+    echo "$html_content"
 }
 generate_html_body()
 {
@@ -1508,7 +1590,6 @@ generate_html_body()
             local filename=$(echo $line | awk -F: '{print $4}')
             local collect_log="${full_path}/${filename}"
             local check_log="${full_path}/${filename}_check"
-            local html_body=""
             local check_status=""
             local check_result_reson=""
             local check_report_status=0
@@ -1545,7 +1626,7 @@ generate_html_report()
     local html_info_head=$(sed -n "/## ${html_type_head} ##/,/## End ${html_type_head} ##/"p $DATA_FILE | grep -v '^#\+')
     local html_info_tail=$(sed -n "/## ${html_type_tail} ##/,/## End ${html_type_tail} ##/"p $DATA_FILE | grep -v '^#\+')
     local html_file="${LOGDIR}/check_report.html"
-    
+
     info "Start generate html report ..."
 
     echo "$html_info_head" > "$html_file"
@@ -1555,6 +1636,7 @@ generate_html_report()
 generate_report()
 {
     generate_html_report
+    generate_json_report
 }
 start_checking()
 {
@@ -1572,7 +1654,7 @@ start_checking()
 check_and_generate_report()
 {
     [ $checking -eq 0 ] && return
-    start_checking 
+    start_checking
     summary_cpu_process
     generate_report
 }
@@ -1592,7 +1674,7 @@ usage()
         $(basename $0) -i <target item>       Call target item to get info.
         $(basename $0) -t <target type>       Call target type to get info.
         $(basename $0) -s <target scope>      Call target scope: small, normal(default), all to get info.
-        $(basename $0) -n                     Will not compress log files to generate tarball. 
+        $(basename $0) -n                     Will not compress log files to generate tarball.
         $(basename $0) -c                     Check log content and generate report.
         $(basename $0) -f <log file>          Assign log tarball file, need with parameter -c.
         $(basename $0) -l                     Just list type and items out.
@@ -1686,7 +1768,7 @@ dmesg:dmesg::dmesg:1:check_dmesg:
 ulimit:ulimit -a::ulimit_a:1::
 crontab:crontab -l::crontab_l:1::
 mpstat:mpstat -P ALL 1 6::mpstat_P:2::
-iostat:iostat -xm 1 6::iostat_xm:2:check_io_utilize:
+iostat:iostat -xm 1 6::iostat_xm:1:check_io_utilize:
 vmstat:vmstat 1 6::vmstat:2::
 tsar:tsar -n 6:check:tsar_n6:2::
 blkid:blkid::blkid:1::
@@ -1696,12 +1778,12 @@ lvs_detail:lvs -vv::lvs_vv:1::
 lvs:lvs -v::lvs_v:1::
 vgs:vgs::vgs:1::
 pvs:pvs::pvs:1::
-lsof:lsof::lsof:2:check_openfiles:
+lsof:lsof::lsof:1:check_openfiles:
 journalctl:journalctl -xn:check:journalctl_xn:2::
-cp_system_files:copy_system_files:path:copy_system_files:2:check_system_log:
+cp_system_files:copy_system_files:path:copy_system_files:1:check_system_log:
 cp_other_files:copy_other_files:path:copy_other_files:3::
-top10_mem:get_top10_mem_process_info:path:top_mem_order:2::
-top10_cpu:get_top10_cpu_process_info:path:top_cpu_order:2::
+top10_mem:get_top10_mem_process_info:path:top_mem_order:1::
+top10_cpu:get_top10_cpu_process_info:path:top_cpu_order:1::
 rpmdb_verify:/usr/lib/rpm/rpmdb_verify /var/lib/rpm/Packages::rpmdb_verify:1:check_rpmdb:
 ######################### End System Info Data ########################
 ######################## Network Info Data ###########################
@@ -1724,18 +1806,18 @@ netcard_info:get_netcard_info:path:netcard_info:1:check_netcard:
 ipmifru:ipmitool fru list::ipmitool_fru_list:1::
 ipmilan:ipmitool lan print 1::ipmitool_lan_print_1:1::
 ipmimc:ipmitool mc info::ipmitool_mc_info:1::
-ipmisensor:ipmitool sensor list::ipmitool_sensor_list:2:check_ipmi_sensor:
+ipmisensor:ipmitool sensor list::ipmitool_sensor_list:1:check_ipmi_sensor:
 ipmisdr:ipmitool sdr list::ipmitool_sdr_list:1:check_ipmi_sdr:
 ipmisel:ipmitool sel elist::ipmitool_sel_elist:1:check_ipmi_event:
 ######################## End BMC Info Data #####################
 ########################## Dom0 Info Data ######################
-docker_info:get_docker_info:path:docker_info:2:check_dockers:
+docker_info:get_docker_info:path:docker_info:1:check_dockers:
 ######################## End Dom0 Info Data ####################
 ############################ Disk Info Data ####################
 disks_io_detail:get_disks_io_detail:path:disks_io_detail:3::
 disk_info:get_disk_info:path:disk_info:2::
 aliflash:get_aliflash_info:path:aliflash_info:2::
-raid_info:get_raid_log:path:raid_type:2:check_raid_card:
+raid_info:get_raid_log:path:raid_type:1:check_raid_card:
 check_syslog:/usr/alisys/dragoon/libexec/alimonitor/independent_domain_check_syslog:check:independent_domain_check_syslog:1:check_alimonitor_syslog:
 check_hardware:/usr/alisys/dragoon/libexec/alimonitor/independent_domain_check_hardware:check:independent_domain_check_hardware:1:check_alimonitor_hardward
 ########################## End Disk Info Data #####################
@@ -1755,6 +1837,7 @@ kernel_bug@arch/x86/kernel/paravirt.c@paravirt_enter_lazy_mmu
 kernel_bug_known@arch/x86/kernel/xsave.c:@__sanitize_i387_state
 kernel_bug_known@divide error: 0000@thread_group_times
 kernel_bug_known@unable to handle kernel NULL pointer@netpoll_poll_dev
+kernel_bug_known@unable to handle kernel NULL pointer@update_shares
 kernel_bug_known@general protection fault:@update_shares
 kernel_bug_known@kernel BUG at fs/jbd/commit.c@journal_commit_transaction
 kernel_bug_known@kernel BUG at fs/jbd2/commit.c@jbd2_journal_commit_transaction
@@ -1807,7 +1890,7 @@ Hardware Error:Processor IERR@Processor #0x0f | IERR
             clear: both;
             width: 100%;
         }
-        tr.tr_top th{line-height:40px;border:none;background-color:rgba(34, 74, 158, 0.4);color:rgb(255,255,255);font-weight:bold;} 
+        tr.tr_top th{line-height:40px;border:none;background-color:rgba(34, 74, 158, 0.4);color:rgb(255,255,255);font-weight:bold;}
         .table tbody tr td{
             vertical-align: middle;
         }
@@ -1825,14 +1908,14 @@ Hardware Error:Processor IERR@Processor #0x0f | IERR
         }
         body{
             background-color:#E6F0FE;
-        } 
+        }
         .even_line{
         background-color:rgba(207,215,232,0.4);
-            text-align:center; 
-        } 
+            text-align:center;
+        }
         .odd_line{
-            text-align:center; 
-        } 
+            text-align:center;
+        }
         @-webkit-keyframes move{
             0%{left:-1800px;}
             100%{left:0px;}
@@ -1867,7 +1950,7 @@ Hardware Error:Processor IERR@Processor #0x0f | IERR
         }
 
        #wrap:hover #list{
-        -webkit-animation-play-state:paused;   
+        -webkit-animation-play-state:paused;
         }
     </style>
 </head>
@@ -2002,34 +2085,34 @@ function makeSortable(table) {
         }(i));
     }
 }
-function td_color_change(){ 
-    var oTable = document.getElementById("line_color_change"); 
-    for(var i=0;i<oTable.rows.length;i++){ 
-        oTable.rows[i].cells[0].innerHTML = (i+1); 
-        if(i%2==0){     
-        oTable.rows[i].className = "even_line"; 
-        }
-        else{
-        oTable.rows[i].className = "odd_line"; 
-        } 
-    } 
-}
-
-function summary_cpu_process_check_info(){ 
-    var oTable = document.getElementById("summary_process_line_color"); 
-    for(var i=0;i<oTable.rows.length;i++){ 
-        if(i%2==0){     
-        oTable.rows[i].className = "even_line"; 
+function td_color_change(){
+    var oTable = document.getElementById("line_color_change");
+    for(var i=0;i<oTable.rows.length;i++){
+        oTable.rows[i].cells[0].innerHTML = (i+1);
+        if(i%2==0){
+        oTable.rows[i].className = "even_line";
         }
         else{
         oTable.rows[i].className = "odd_line";
         }
-    } 
-} 
+    }
+}
+
+function summary_cpu_process_check_info(){
+    var oTable = document.getElementById("summary_process_line_color");
+    for(var i=0;i<oTable.rows.length;i++){
+        if(i%2==0){
+        oTable.rows[i].className = "even_line";
+        }
+        else{
+        oTable.rows[i].className = "odd_line";
+        }
+    }
+}
 
 function sortNumberAS(a, b)
 {
-    return a-b    
+    return a-b
 }
 function sortNumberDesc(a, b)
 {
@@ -2041,10 +2124,14 @@ function ProcessCountSort(obj){
     var td1s=document.getElementsByName("td1");
     var td2s=document.getElementsByName("td2");
     var td3s=document.getElementsByName("td3");
+    var td4s=document.getElementsByName("td4");
+    var td5s=document.getElementsByName("td5");
     var tdArray0=[];
     var tdArray1=[];
     var tdArray2=[];
     var tdArray3=[];
+    var tdArray4=[];
+    var tdArray5=[];
     for(var i=0;i<td0s.length;i++){
         tdArray0.push(td0s[i].innerHTML);
     }
@@ -2057,6 +2144,12 @@ function ProcessCountSort(obj){
     for(var i=0;i<td3s.length;i++){
         tdArray3.push(td3s[i].innerHTML);
     }
+    for(var i=0;i<td4s.length;i++){
+        tdArray4.push(td4s[i].innerHTML);
+    }
+    for(var i=0;i<td5s.length;i++){
+        tdArray5.push(td5s[i].innerHTML);
+    }
     var tds=document.getElementsByName("td1");
     var columnArray=[];
     for(var i=0;i<tds.length;i++){
@@ -2067,11 +2160,11 @@ function ProcessCountSort(obj){
         orginArray.push(columnArray[i]);
     }
     if(obj.className=="as"){
-        columnArray.sort(sortNumberAS);               
+        columnArray.sort(sortNumberAS);
         obj.className="desc";
     }
     else{
-        columnArray.sort(sortNumberDesc);             
+        columnArray.sort(sortNumberDesc);
         obj.className="as";
     }
     for(var i=0;i<columnArray.length;i++){
@@ -2081,6 +2174,8 @@ function ProcessCountSort(obj){
                 document.getElementsByName("td1")[i].innerHTML=tdArray1[j];
                 document.getElementsByName("td2")[i].innerHTML=tdArray2[j];
                 document.getElementsByName("td3")[i].innerHTML=tdArray3[j];
+                document.getElementsByName("td4")[i].innerHTML=tdArray4[j];
+                document.getElementsByName("td5")[i].innerHTML=tdArray5[j];
                 orginArray[j]=null;
                 break;
             }
