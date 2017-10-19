@@ -706,7 +706,7 @@ check_system_load()
     show_result "$key" "$res"
     return $res
 }
-check_filesystems()
+check_readonly()
 {
     local log_file=$1
     local res=$success
@@ -716,6 +716,35 @@ check_filesystems()
     show_result "$key" "$res"
     return $res
 
+}
+get_fstab_info()
+{
+    echo "########## mount info #############"
+    mount
+    echo "######### end mount info ###########"
+    echo "########## fstab info ############"
+    cat /etc/fstab
+    echo "######### end fstab info #########"
+}
+check_fstab()
+{
+    local log_file=$1
+    local res=$success
+    local key=""
+    local mount=$(sed -n "/## mount info ##/,/## end mount info ##/"p $log_file | grep -v '#')
+    local fstab=$(sed -n "/## fstab info ##/,/## end fstab info ##/"p $log_file | grep -v '#' | awk '{print $2}')
+    while read item
+    do
+        local ok=0
+        [ "$item" = "" ] && continue
+        while read line
+        do
+            ok=$(echo $line | grep -cw "$item")
+            [ $ok -ne 0 ] && break
+        done <<< "$mount"
+        [ $ok -eq 0 ] && res=$fail && show_result "fstab: $item is error." "$res"
+    done <<< "$fstab"
+    return $res
 }
 check_kdump_status()
 {
@@ -850,20 +879,31 @@ kernel_error_message()
 
     return $res
 }
+check_ipmi_device()
+{
+    local log=$1
+    local ok=$(cat "$log" | grep -c "Could not open device")
+    [ $ok -ne 0 ] && show_result "Ipmi module did not load." $fail && return $fail
+    return $success
+}
 check_ipmi_event()
 {
-    local log_file=$1
+    local logfile=$1
     local res=$success
     local info_type="Ipmi Event Data"
     local info_data=$(sed -n "/## $info_type ##/,/## End $info_type ##/"p $DATA_FILE | grep -v '##')
+
+    check_ipmi_device "$logfile"
+    [ $? -eq $fail ] && return $fail
 
     while read line
     do
         local msg=$(echo $line | awk -F "@" '{print $1}')
         local key=$(echo $line | awk -F "@" '{print $2}')
-        local fail=$(cat $log_file | grep -c "$key")
+        local fail=$(cat $logfile | grep -c "$key")
         [ $fail -ne 0 ] && res=$fail && show_result "${msg}: $key" $res
     done<<<"$info_data"
+    
     return $res
 }
 check_system_log()
@@ -1212,6 +1252,9 @@ check_ipmi_sensor()
     local res=$success
     local key=""
     local sensor_status=$(grep -v "Command" $logfile|awk -F '|' '{print $4}'|grep -Evc "ok|0x0100|0x0000|0x8000|0x0080|0x0180|0x4080|0x0200|0x4000|na|nc|cr")
+
+    check_ipmi_device "$logfile"
+    [ $? -eq $fail ] && return $fail
     [ $sensor_status -gt 0 ] && local key="Sensor status is abnormal." && res=$warn
     show_result "$key" "$res"
     return $res
@@ -1223,6 +1266,8 @@ check_ipmi_sdr()
     local res=$success
     local key=""
     local sdr_err=$(grep -v "Command" $logfile|awk -F '|' '{print $3}'| egrep -vc "ok|nc|cr")
+    check_ipmi_device "$logfile"
+    [ $? -eq $fail ] && return $fail
     [ $sdr_err -ne 0 ] && local key="Sdr status is abnormal." && res=$warn
     show_result "$key" "$res"
     return $res
@@ -1265,7 +1310,9 @@ summary_cpu_process()
     local top_logfile="$LOGDIR/$logdir/$top_log"
     local d_logfile="$LOGDIR/summary_cpu_process_check"
 
-    touch $d_logfile
+    echo "Start summary process load info ..."
+    
+    > $d_logfile
     [ ! -e $ps_logfile ] || [ ! -e $top_logfile ] && return
     PID=$(awk '{print $1}' $ps_logfile|grep -Ev "PID|Command"|uniq -c|sort -rn|awk '{print $2}')
     cat $top_logfile|head -6|tail -5 >> $d_logfile
@@ -1275,14 +1322,15 @@ summary_cpu_process()
     do
         local WCHAN=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{print $11}'|sort|uniq)
         local command=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{$1="";$2="";$3="";$4="";$5="";$6="";$7="";$8="";$9="";$10="";$11="";print}'|tail -1)
+        local mem_result=$(grep -wE "^[ ]*$pid" $ps_logfile|awk '{print $5}'|tail -1)
         for wchan in $WCHAN
         do
-            local cpu_a=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $4}'|awk -F. 'BEGIN{sum=0}{sum+=$1}END{print sum}')
-            local cpu_b=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $4}'|awk -F. 'BEGIN{sum=0}{sum+=$2}END{print sum}')
-            local mem_a=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $5}'|awk -F. 'BEGIN{sum=0}{sum+=$1}END{print sum}')
-            local mem_b=$(grep -wE "^[ ]*$pid" $ps_logfile|grep "$wchan"|awk '{print $5}'|awk -F. 'BEGIN{sum=0}{sum+=$2}END{print sum}')
-            local cpu_result="$cpu_a.$cpu_b"
-            local mem_result="$mem_a.$mem_b"
+            local cpu_result=0
+            local CPU=$(grep -wE "^[ ]*$pid" $ps_logfile|grep -w "$wchan"|awk '{print $4}')
+            for cpu in $CPU
+            do
+                cpu_result=$(echo "$cpu $cpu_result"|awk '{printf ("%.1f\n",$1+$2)}')
+            done
             local wchan_count=$(grep -wE "^[ ]*$pid" $ps_logfile|grep -wc "$wchan")
             printf "%-5s %-5s %-5s %-5s %-20s %-10s\n" "$pid" "$wchan_count" "$cpu_result" "$mem_result" "$wchan" "$command" >> $d_logfile
         done
@@ -1485,12 +1533,12 @@ summary_process_html()
          <table class=\"table table-bordered\" style=\"word-break:break-all; word-wrap:break-all;\">
             <thead>
                 <tr class=\"tr_top\" height=\"30px\">
-                  <th width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${PID}</th>
-                  <th class=\"as\" id=\"th1\" onclick=\"ProcessCountSort(this)\" width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${COUNT}<div>(点击可排序)</div></th>
-                  <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${CPU}</th>
-                  <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${MEM}</th>
-                  <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${WIDE_WCHAN_COLLUMN}</th>
-                  <th width=\"65%\" style=\"text-align: center;vertical-align: middle;\">${COMMAND}</th>
+                    <th class=\"as\" id=\"th0\" onclick=\"ProcessCountSort(this)\" width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${PID}</th>
+                    <th class=\"as\" id=\"th1\" onclick=\"ProcessCountSort(this)\" width=\"10%\" style=\"text-align: center;vertical-align: middle;\">${COUNT}</th>
+                    <th class=\"as\" id=\"th2\" onclick=\"ProcessCountSort(this)\" width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${CPU}</th>
+                    <th class=\"as\" id=\"th3\" onclick=\"ProcessCountSort(this)\" width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${MEM}</th>
+                    <th width=\"15%\" style=\"text-align: center;vertical-align: middle;\">${WIDE_WCHAN_COLLUMN}</th>
+                    <th width=\"65%\" style=\"text-align: center;vertical-align: middle;\">${COMMAND}</th>
                 </tr>
             </thead>
             <tbody id=\"summary_process_line_color\">"
@@ -1561,13 +1609,22 @@ html_body()
             </tr>"
     echo "$html_content"
 }
+get_system_info_from_log()
+{
+    local type_pattern="Type Data"
+    local info_pattern="System Info Data"
+    local logdir=$(sed -n "/## $type_pattern ##/,/## End $type_pattern ##/"p $DATA_FILE|grep "$info_pattern"|awk -F: '{print $2}')
+    local sysinfo_log=$(sed -n "/## $info_pattern ##/,/## End $info_pattern ##/"p $DATA_FILE|grep -E "^sysinfo"|awk -F: '{print $4}')
+    local sysinfo_file="${LOGDIR}/${logdir}/$sysinfo_log"
+    cat $sysinfo_file | sed '1,1d'
+}
 generate_html_body()
 {
     local html=$1
     local type_pattern="Type Data"
     local type_data=$(sed -n "/## $type_pattern ##/,/## End $type_pattern ##/"p $DATA_FILE | grep -v '#')
     local n=1
-    local system_info=$(echo "$(show_system_info)" | grep -v "^$")
+    local system_info=$(echo "$(get_system_info_from_log)" | grep -v "^$")
     local html_info_system="<pre id=\"system_data\" style=\"display: none\"><code>${system_info}</code></pre>"
     local system_monitor_info=$(summary_process_html)
     local html_info_system_monitor="<pre id=\"system_monitor_data\" style=\"display: none\"><code>${system_monitor_info}</code></pre>"
@@ -1627,14 +1684,13 @@ generate_html_report()
     local html_info_tail=$(sed -n "/## ${html_type_tail} ##/,/## End ${html_type_tail} ##/"p $DATA_FILE | grep -v '^#\+')
     local html_file="${LOGDIR}/check_report.html"
 
-    info "Start generate html report ..."
-
     echo "$html_info_head" > "$html_file"
     generate_html_body "$html_file"
     echo "$html_info_tail" >> "$html_file"
 }
 generate_report()
 {
+    info "Start generate report ..."
     generate_html_report
     generate_json_report
 }
@@ -1738,7 +1794,7 @@ Slb Info Data:lsb_info::slb information ...
 #filename is log file name.
 #scope include 1(small), 2(normal) and 3(all).
 ########################## System Info Data ###########################
-hwconfig:hwconfig::hwconfig:1::
+sysinfo:show_system_info::system_info:1::
 history:cat $HOME/.bash_history::history:1:check_user_behavior:
 uname:uname -a::uname_a:1::
 df:df -h::df_h:1:check_disk_size:
@@ -1748,8 +1804,8 @@ last:last reboot::last_reboot:1::
 chkconfig:chkconfig --list::chkconfig__list:1::
 runlevel:runlevel::runlevel:1::
 uptime:uptime::uptime:1:check_system_load:
-mount:mount::mount:1::
-cat_mount:cat /proc/mounts::cat_mount:1:check_filesystems:
+fstab:get_fstab_info::fstab_info:1:check_fstab:
+cat_mount:cat /proc/mounts::cat_mount:1:check_readonly:
 top_thread:top -H -b -n 1::top_H_b:1::
 top:top -b -n 1::top_b:1::
 kdump:/etc/init.d/kdump status::kdump_status:1:check_kdump_status:
@@ -2150,7 +2206,7 @@ function ProcessCountSort(obj){
     for(var i=0;i<td5s.length;i++){
         tdArray5.push(td5s[i].innerHTML);
     }
-    var tds=document.getElementsByName("td1");
+    var tds=document.getElementsByName("td"+obj.id.substr(2,1));
     var columnArray=[];
     for(var i=0;i<tds.length;i++){
         columnArray.push(parseInt(tds[i].innerHTML));

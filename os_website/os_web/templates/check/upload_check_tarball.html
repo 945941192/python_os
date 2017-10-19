@@ -3,7 +3,7 @@
         {% block title %}检测日志{% endblock %}
         {% block content %}
 
-			<div class="am-u-md-41" style="overflow:auto;">
+			<div class="am-u-md-41" style="overflow:auto;" id="contents">
                 <form enctype="multipart/form-data" id="forms" action="{% url 'check:upload_check_tarball' %}" method="post">  
                     <br/>
                     <br/>
@@ -50,6 +50,10 @@
                         </table>      
 
 			</div>
+            <div class="am-u-md-41" id="up_loading" style="text-align:center;margin-top: 211px;display:none"  align="center">
+                <img src="/static/images/boy_loading.gif"  style="text-align:center" alt="system_process-img" class="img-rounded"> 
+                <h3>   玩命上传中，请稍等。。。。。。</h3>
+            </div>
 
         {% endblock %}
 
@@ -63,11 +67,12 @@
 
 
         $(document).ready(function() {
-            $("#dataLoad").hide(); //页面加载完毕后即将DIV隐藏
             $("#showLoadingDiv").click(function(){
                 if (!$("#Myfile").val()){
                     alert("请选择上传文件")
                 }else{
+                    $("#contents").hide()
+                    $("#up_loading").show()
                     $("#forms").submit();
 
                 }
@@ -78,6 +83,7 @@
 
         $(document).ready(function() {
             $('#example').DataTable( {
+                "order": [[ 5, "desc"  ]]
             });
  
         });
