@@ -11,13 +11,99 @@
                     </div>
                     
                         <ul class="am-list admin-sidebar-list">
+
+
+
                             <li><a href="{% url 'index:index' %}"><span class="am-icon-home"></span> 首页</a></li>
+
+
                             <li class="admin-parent">
-                            <a class="am-cf" data-am-collapse="{target: '#collapse-nav1'}"><span class="am-icon-table"></span> 系统分析 <span class="am-icon-angle-right am-fr am-margin-riht"></span></a> 
-                                <ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav1">
+                            <a href="{% url 'admin:index' %}" class="am-cf" data-am-collapse="{target: '#collapse-nav2'}"><i class="am-icon-line-chart" aria-hidden="true"></i> 扁鹊数据管理 </a>
+                              <ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav2">
+                              </ul>
+                            </li>
+
+
+
+
+                            <li class="admin-parent">
+                            <a id="zhuanyouyun" class=" am-cf am-collapsed" href="{% url 'aliyun:cloud_version' %}" data-am-collapse="{target: '#collapse-nav1'}"><span class="am-icon-file"> 专有云 </a>
+<!--                                <ul id="zhuanyouyun1" class="am-list am-collapse admin-sidebar-sub am-in" style="display:None"  id="collapse-nav1">
+                                    <li><a href="{% url 'aliyun:version' %}?version=v2">v2</a></li>
+                                    <li><a href="{% url 'aliyun:version' %}?version=v3">v3</a></li>
+                                </ul>
+!-->
+                            </li>
+
+                            <div  id="tag1" style="display:None">a</div>
+
+<script>
+    $("#zhuanyouyun").click(function(){
+        var tag = $("#tag1").html()
+        if (tag == 'a'){
+            $("#zhuanyouyun1").show()
+            $("#tag1").html("b")
+        }
+        else if(tag=='b'){
+            $("#zhuanyouyun1").hide()
+            $("#tag1").html("a")
+        }
+    }); 
+</script>
+
+
+
+                            <li class="admin-parent">
+                                <a id="object_manage" class=" am-cf am-collapsed" data-am-collapse="{target: '#collapse-nav1'}"><span class="am-icon-table"></span> 项目管理 <span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+                                <ul id="object_manage_ul" class="am-list am-collapse admin-sidebar-sub am-in" style="display:None"  id="collapse-nav1">
+                                    <li><a href="{% url 'aliyun:add_project' %}">添加项目</a></li>
+                                    <li><a href="#">查询</a></li>
+                                    <li><a href="{% url 'aliyun:upload_host_check_log' %}">专有云-检测tarball</a></li>
+                                </ul>
+                            </li>
+
+                            <div  id="object_manage_tag" style="display:None">show</div>
+<script>
+    $("#object_manage").click(function(){
+        var tag = $("#object_manage_tag").html()
+        if (tag == 'show'){
+            $("#object_manage_ul").show()
+            $("#object_manage_tag").html("hide")
+        }
+        else if(tag=='hide'){
+            $("#object_manage_ul").hide()
+            $("#object_manage_tag").html("show")
+        }
+    }); 
+</script>
+
+
+                            <li class="admin-parent">
+                                <a id="qita" class=" am-cf am-collapsed" data-am-collapse="{target: '#collapse-nav1'}"><span class="am-icon-table"></span> 其他 <span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+                                <ul id="qita1" class="am-list am-collapse admin-sidebar-sub am-in" style="display:None"  id="collapse-nav1">
                                     <li><a href="{% url 'check:upload_check_tarball' %}">检测日志</a></li>
                                     <li><a href="{% url 'check:script_tools' %}">工具下载</a></li>
                                 </ul>
+                            </li>
+
+                            <div  id="tag" style="display:None">a</div>
+<script>
+    $("#qita").click(function(){
+        var tag = $("#tag").html()
+        if (tag == 'a'){
+            $("#qita1").show()
+            $("#tag").html("b")
+        }
+        else if(tag=='b'){
+            $("#qita1").hide()
+            $("#tag").html("a")
+        }
+    }); 
+</script>
+
+
+
+
                         </ul>
                 </div>          
             </div>

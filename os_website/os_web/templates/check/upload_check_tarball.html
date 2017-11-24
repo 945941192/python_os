@@ -27,7 +27,7 @@
                                 <th style="text-align:center;width:5%">report</th>      
                                 <th style="text-align:center;width:5%">tarball</th>      
                                 <th style="text-align:center;width:30%">时间</th>                   
-                                <th style="text-align:center;width:40%"> 备注信息</th>                
+                                <th id="test" style="text-align:center;width:40%"> 备注信息</th>                
                             </tr>                           
                             </thead>                                                                                                                                               
                             <tbody>                         
@@ -49,7 +49,7 @@
                                     {% if info.remarks == '' %}
                                         <td>无</td>
                                     {% else %}
-                                        <td>{{info.remarks}}</td>
+                                        <td class="remarks">{{info.remarks}}</td>
                                     {% endif %}
                                 </tr>                           
                             {%endfor%}                      
@@ -87,9 +87,13 @@
                     $("#contents").hide()
                     $("#up_loading").show()
                     $("#forms").submit();
-
                 }
-                    
+                });
+
+///文本原样呈现
+
+                $(".remarks").each(function(){
+                    $(this).html($(this).text().replace(/\n/g,'<br>'))
                 });
 
         });
@@ -100,7 +104,6 @@
             });
  
         });
-
 
     </script>
     {% endblock %}

@@ -1,3 +1,4 @@
+#coding=utf-8
 """
 Django settings for os_web project.
 
@@ -38,12 +39,13 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'check',
+    'aliyun',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-   # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -95,7 +97,8 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+#LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'Asia/Shanghai'
 
@@ -113,3 +116,10 @@ STATIC_URL = '/static/'
 
 FilePath = "/var/log/"
 
+#OSS 对象存储
+OSSBUCKET = {
+    'BUCKETNAME' : '//135400/web_bucket/', 
+    'HOST'       : 'b3NzLWNuLWhhbmd6aG91LXptZi5hbGl5dW5jcy5jb20=',
+    'ID'         : 'TFRBSTZhUHowbzFnb1Jacg==',
+    'KEY'        : 'MkhxR21ldmNuYXM3bWc2c3NLODE2TzF6V3ViV0w2'
+            }

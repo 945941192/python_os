@@ -20,4 +20,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^',include('check.urls',namespace='index')),
     url(r'^check/',include('check.urls',namespace='check')),
+    url(r'aliyun/',include('aliyun.urls',namespace='aliyun')),
 ]

@@ -1,0 +1,70 @@
+		
+    {% extends 'base/base.html' %}
+    {% block title %}专有云v2版本{% endblock %}
+        {% block content %}
+
+			<div class="am-u-md-41" id="contents" style="overflow:auto;">
+<br>
+<br>
+<br>
+<br>
+            <h2 align="center">专有云</h2>
+<br>
+<br>
+                        <table id="example" class="display" cellspacing="0" width="100%">
+                            <thead>                         
+                            <tr>                            
+                                <th  style="text-align:center;">版本</th>                
+                                <th  style="text-align:center;">项目数</th>               
+                                <th  style="text-align:center;">主机数</th>               
+                                <th  style="text-align:center;">健康值</th>            
+                                <th  style="text-align:center;">版本介绍</th>            
+                            </tr>                           
+                            </thead>                                                                  
+                            <tbody>                         
+                                {% for info in version_set %}
+                                <tr>                            
+                                    <td style="width:20%;text-align:center;"><a href="{% url 'aliyun:version' %}?version_id={{ info.version_id }}&version={{ info.version_type }}">{{ info.version_type }}</a></td>
+                                    <td class="tool_instruction"  style="width:20%;text-align:center">{{ info.project_count }}</td> 
+                                    <td class="tool_instruction"  style="width:20%;text-align:center">{{ info.host_count }}</td> 
+                                    <td class="tool_instruction"  style="width:20%;text-align:center">
+                                        <div class="progress progress-striped" style="margin-bottom: 0px;">
+                                            {% if info.av_health_index_num > 80 %}
+                                                <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{ info.av_health_index_num }}%;">
+                                                    <span>{{ info.av_health_index_num }}</span>
+                                                </div>
+                                            {% else  %}
+                                                <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{ info.av_health_index_num }}%;">
+                                                    <span>{{ info.av_health_index_num }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div> 
+                                    </td> 
+                                    <td class="tool_instruction"  style="width:20%;">{{ info.version_description }}</td> 
+                                </tr>                           
+                                {% endfor %}
+                            </tbody>                        
+                        </table>     
+			</div>
+
+
+            {% endblock %}
+
+
+		
+
+
+
+        {% block extrajs %}
+		<script type="text/javascript">
+            $(document).ready(function() {
+                $('#example').DataTable( {
+                });
+
+            });
+            
+
+        </script>
+	
+        {% endblock %}	
+

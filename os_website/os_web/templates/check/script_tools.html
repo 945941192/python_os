@@ -13,7 +13,7 @@
 
                 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                     <div class="modal-dialog"> 
-                        <div class="modal-content">     
+                        <div class="modal-content" style="width: 802px;">
                             <div class="modal-header">      
                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                                  &times;    
@@ -42,7 +42,7 @@
                                 <tr>
                                     <td>工具说明</td>
                                     <td>
-                                        <textarea id="tool_instructions" style="width:426px;height:80px;"></textarea>    
+                                        <textarea id="tool_instructions" style="width:649px;height:310px;"></textarea>    
                                     <br>
                                     </td>
                                 </tr>
@@ -53,7 +53,7 @@
 
                             </div>
                             <div class="modal-footer">      
-                                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="save_tool_info()">提交工具信息</button>      
+                                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="add_tool_info()">提交工具信息</button>      
                             </div>
                         </div><!-- /.modal-content -->  
                     </div><!-- /.modal -->
@@ -75,15 +75,15 @@
                                 {% for info in script_tools_set %}
                                 <tr>                            
                                     <td style="width:20%;text-align:center;">{{ info.tool_name }}</td>
-                                    <td style="width:40%;">{{ info.tool_instructions }}</td> 
-                                    <td style="width:20%;text-align:center;"><button class="btn btn-info"  onclick="down_script_tool('{{ info.tool_name }}')">工具下载</button></td> 
+                                    <td class="tool_instruction"  style="width:60%;">{{ info.tool_instructions }}</td> 
+                                    <td style="width:10%;text-align:center;"><button class="btn btn-info"  onclick="down_script_tool('{{ info.tool_name }}')">工具下载</button></td> 
                              <!--   <td style="width:20%"><button class="btn btn-info" type="button" onclick="delete_script_tool('{{ info.tool_name }}')">删除</button></td>  -->
-                                    <td style="width:20%;text-align:center;"><button class="btn btn-info" data-toggle="modal" data-target="#modal{{ info.id }}">编辑</button></td>
+                                    <td style="width:10%;text-align:center;"><button class="btn btn-info" data-toggle="modal" data-target="#modal{{ info.id }}">编辑</button></td>
 
 
 <div class="modal fade" id="modal{{ info.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="width: 802px;">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                     &times;
@@ -93,11 +93,10 @@
                 </h4>
             </div>
             <div class="modal-body">
-                            <h4>工具名称</h4>
-                                        <input type="text" class="form-control" id="tool_id{{info.id}}_name" value="{{ info.tool_name }}">
-                            <h4>工具说明</h4>
-                                        <textarea id="tool_id{{info.id}}_instructions" style="width:426px;height:80px;">{{ info.tool_instructions }}</textarea>
-
+                    <h4>工具名称</h4>
+                        <input type="text" class="form-control" id="tool_id{{info.id}}_name" style="width: 332px;"  value="{{ info.tool_name }}">
+                    <h4>工具说明</h4>
+                        <textarea id="tool_id{{info.id}}_instructions" style="width: 753px;height: 426px;">{{ info.tool_instructions }}</textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
@@ -131,7 +130,10 @@
             $(document).ready(function() {
                 $('#example').DataTable( {
                 });
- 
+
+                $(".tool_instruction").each(function(){
+                    $(this).html($(this).text().replace(/\n/g,'<br>'))
+                });
             });
             
             function down_script_tool(tool_name){
@@ -139,15 +141,27 @@
                 location.href = url;
             }
 
-            function save_tool_info(){
+            function add_tool_info(){
                 var tool_name = $("#tool_name").val()
                 var tool_instructions = $("#tool_instructions").val()
                 if (!tool_name){
                     alert("请输入工具名称")
                 }
                 else{
-                    var url = "{% url "check:script_tools" %}"+"?tool_name="+tool_name+"&tool_instructions="+tool_instructions+"&save=1"
-                    location.href = url
+                //    var url = "{% url "check:script_tools" %}"+"?tool_name="+tool_name+"&tool_instructions="+tool_instructions+"&add=1"
+                //    location.href = url
+                $.ajax({
+                       url:'{% url "check:script_tools"  %}',
+                       type:'POST',
+                       async:true,
+                       data:{tool_name:tool_name,tool_instructions:tool_instructions,add:1},
+                       timeout:5000,
+                       dataType:'json',
+                       success:function(res)
+                       {
+                       if(res["msg"]=="ok"){location.reload()}
+                       },
+                });
                 }
             }
             
@@ -161,10 +175,21 @@
                 var tool_id_instructions = "#tool_id"+tool_id+"_instructions"
                 var tool_name = $(tool_id_name).val()
                 var tool_instructions = $(tool_id_instructions).val()
-                var url = "{% url "check:script_tools" %}"+"?tool_id="+tool_id+"&mod=1"+"&tool_name="+tool_name+"&tool_instructions="+tool_instructions
-                location.href = url
+                $.ajax({
+                       url:'{% url "check:script_tools"  %}',
+                       type:'POST',
+                       async:true,
+                       data:{tool_id:tool_id,tool_name:tool_name,tool_instructions:tool_instructions,modify:1},
+                       timeout:5000,
+                       dataType:'json',
+                       success:function(res)
+                       {
+                       if(res["msg"]=="ok"){location.reload()}
+                       },
+                });
             }
- 
+
+
         </script>
 	
         {% endblock %}	

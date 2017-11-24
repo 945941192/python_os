@@ -1,0 +1,62 @@
+		
+    {% extends 'base/base.html' %}
+    {% block title %}专有云v2版本{% endblock %}
+        {% block content %}
+
+			<div class="am-u-md-41" id="contents" style="overflow:auto;">
+<br>
+<br>
+<br>
+<br>
+<h1 align="center">故障分析页面</h1>
+<h2 align="center">专有云--{{version}}--{{project_name}}--{{host_name}}</h2>
+<br>
+<br>
+                        <table id="example" class="display" cellspacing="0" width="100%">
+                            <thead>                         
+                            <tr>                            
+                                <th  style="text-align:center;">检查项</th>                
+                                <th  style="text-align:center;">检查状态</th>               
+                                <th  style="text-align:center;">错误信息</th>               
+                            </tr>                           
+                            </thead>                                                                  
+                            <tbody>                         
+                                {% for info in host_check_info_set %}
+                                <tr>                            
+                                    <td style="width:20%;text-align:center;">{{ info.name }}</td>
+                                    <td style="width:10%;text-align:center;">{{ info.status }}</td>
+                                    <td style="width:20%;text-align:center">{{ info.reason }}</td> 
+                                </tr>                           
+                                {% endfor %}
+                            </tbody>                        
+                        </table>     
+			</div>
+
+
+            {% endblock %}
+
+
+		
+
+
+
+        {% block extrajs %}
+		<script type="text/javascript">
+            function go_check_log_page(check_date_id){
+                var version = "{{ version }}"
+                var project_name = "{{ project_name }}"
+                var host_name = "{{ host_name }}"
+                var host_id = "{{ host_id }}"
+                    var url = "{% url 'aliyun:host_analysis_info' %}?host_id="+host_id+"&check_date_id="+check_date_id+"&version="+version+"&project_name"+project_name
+                window.location.href = url 
+            }
+
+            $(document).ready(function() {
+                $('#example').DataTable( {
+                });
+
+            });
+        </script>
+	
+        {% endblock %}	
+

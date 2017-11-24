@@ -1,0 +1,101 @@
+		
+    {% extends 'base/base.html' %}
+    {% block title %}专有云v2版本{% endblock %}
+        {% block content %}
+
+			<div class="am-u-md-41" id="contents" style="overflow:auto;">
+<br>
+<br>
+<br>
+<br>
+<br>
+<div style="border-left-width: 32px;margin-left: 139px;">
+<h5 style="display: inline-block;">云类别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h5>
+<select class="form-control" id="cloud_type_id" style="width:15%;display:inline-block">
+    {% for obj in cloud_type_set  %}
+    <option value="{{ obj.cloud_id }}">{{ obj.cloud_type }}</option>
+    {% endfor  %}
+</select>
+<br>
+<br>
+<h5 style="display: inline-block;">版本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h5>
+<select class="form-control" id="cloud_version_id" style="width:15%;display:inline-block">
+    {% for obj in version_set  %}
+    <option value="{{ obj.version_id }}">{{ obj.version_type }}</option>
+    {% endfor  %}
+</select>
+
+<br>
+<br>
+<h5 style="display: inline-block;">项目名称&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h5>
+    <input type="text" class="form-control" id="project_name" style="width: 332px;display: inline-block;"  value="">
+
+<br>
+<br>
+<h5 style="display: inline-block;">项目介绍&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h5>
+    <textarea id="project_instructions" style="width: 600px;height: 150px;"></textarea>
+
+<br>
+<br>
+<h5 style="display: inline-block;">项目开始时间&nbsp;</h5>
+    <input type="text" class="form-control" id="project_start_date" style="width: 332px;display: inline-block;"  value="">
+<br>
+<br>
+<button type="button" style="text-align:center;margin-left: 337px;"  class="btn btn-success" data-dismiss="modal" onclick="add_project()">添加项目</button>      
+
+
+
+</div>
+<br>
+			</div>
+
+
+            {% endblock %}
+
+
+		
+
+
+
+        {% block extrajs %}
+		<script type="text/javascript">
+
+            function add_project(){                                                                                                                                              
+                var cloud_type_id = $("#cloud_type_id").val()
+                var cloud_version_id = $("#cloud_version_id").val()
+                var project_name = $("#project_name").val()
+                var project_instructions = $("#project_instructions").val()
+                var project_start_date = $("#project_start_date").val()
+                if (!project_name){
+                    alert("请输入项目名称")
+                }
+                else{
+                    $.ajax({
+                       url:'{% url "aliyun:add_project"  %}',
+                       type:'POST',
+                       async:true,
+                       data:{cloud_type_id:cloud_type_id,cloud_version_id:cloud_version_id,project_name:project_name,project_instructions:project_instructions,project_start_date:project_start_date},
+                       timeout:5000,
+                       dataType:'json',
+                       success:function(res)
+                       {
+                       if(res["msg"]=="ok"){
+                            location.reload()   
+                        }
+                       },
+                });
+                }
+            }
+
+
+            $(document).ready(function() {
+
+
+
+            });
+            
+
+        </script>
+	
+        {% endblock %}	
+

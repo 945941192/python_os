@@ -1,0 +1,114 @@
+		
+    {% extends 'base/base.html' %}
+    {% block title %}上传主机check日志{% endblock %}
+        {% block content %}
+
+			<div class="am-u-md-41" id="contents" style="overflow:auto;">
+<br>
+<br>
+<br>
+<div style="border-left-width: 32px;margin-left: 139px;">
+    <form id="upload_host_check_log" enctype="multipart/form-data" action="{% url 'aliyun:upload_host_check_log' %}"  method="post">
+        <h4 style="display: inline-block;">云类别&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <h5 style="display: inline-block;">专有云&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h5>
+<br>
+<br>
+        <h4 style="display: inline-block;">版本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <select class="form-control" id="cloud_version_id" name="cloud_version_id"  style="width:15%;display:inline-block">
+            {% for obj in version_set  %}
+                <option value="{{ obj.version_id }}">{{ obj.version_type }}</option>
+            {% endfor  %}
+        </select>
+
+<br>
+<br>
+        <h4 style="display: inline-block;">项目名称&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <select class="project_list" id="project_id"  name="project_id" class="form-control" style="width: 20%" data-placeholder="请选择项目名称" ></select>
+
+
+<br>
+<br>
+
+        <input type="file"  id="Myfile" name="host_check_log" /> 
+
+<br>
+<br>
+        <h4 style="display: inline-block;">备  &nbsp;  注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h4>
+        <textarea id="host_check_description" name="description" style="width: 600px;height: 150px;"></textarea>
+
+<br>
+<br>
+        <button  type="button" style="text-align:center;margin-left: 337px;"  class="btn btn-success"  onclick="upload_host_check_log()">上传</button>      
+
+
+</form>
+
+
+
+
+
+
+</div>
+<br>
+			</div>
+
+
+            {% endblock %}
+
+
+		
+
+
+
+        {% block extrajs %}
+		<script type="text/javascript">
+            //submit form data
+            function upload_host_check_log(){
+                $("#upload_host_check_log").submit()
+            };
+
+
+            //select2 异步请求获取项目列表
+            function select2_fun(cloud_version_id){
+                $(".project_list").select2({
+                    ajax: {
+                        url: "{% url 'aliyun:project_list' %}?&cloud_version_id="+cloud_version_id,
+                        cache: true,
+                    }
+                });
+
+            }
+
+            $(document).ready(function() {
+                //初始化云类型版本类型为专有云
+                //$("#cloud_type_id").val({{ pre_cloud_type_id  }})
+                //select 选择云类型时发送请求获取信息
+                //$("#cloud_type_id").val({{ cloud_type_id }})
+                //$("#cloud_version_id").val({{ cloud_version_id }})
+                //var cloud_type_id = $("#cloud_type_id").val()
+                var cloud_version_id = $("#cloud_version_id").val()
+                select2_fun(cloud_version_id)
+                //$("#cloud_type_id").change(function(){
+                //    var cloud_type_id = $("#cloud_type_id").val()
+                //    var cloud_version_id = $("#cloud_version_id").val()
+                //    var url = "{% url 'aliyun:upload_host_check_log'  %}?cloud_type_id="+cloud_type_id
+                //    window.location.href = url;
+                 //   select2_fun(cloud_version_id)
+                //});
+                $("#cloud_version_id").change(function(){
+                    var cloud_type_id = $("#cloud_type_id").val()
+                    var cloud_version_id = $("#cloud_version_id").val()
+                    var url = "{% url 'aliyun:upload_host_check_log' %}?cloud_type_id="+cloud_type_id+'&cloud_version_id='+cloud_version_id
+                    //清空 项目下拉菜单
+                    $("#project_id").val('')
+//                    window.location.href = url;
+                    select2_fun(cloud_version_id)
+                });
+
+            });
+            
+
+        </script>
+	
+        {% endblock %}	
+
